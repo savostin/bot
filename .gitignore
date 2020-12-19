@@ -2,6 +2,7 @@
 /bot
 /build
 /log
+/openssl/lib
 *.a
 *.dynlib
 *.dll
