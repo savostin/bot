@@ -125,7 +125,6 @@ bool BetFairAccount::placeBet(struct Bet &bet)
     return false;
 }
 
-#include <sys/resource.h>
 
 void BetFairAccount::keepAlive()
 {
@@ -312,7 +311,6 @@ chrono::system_clock::time_point BetFairAccount::str2time(const string &str)
 void BetFairAccount::doit(BetFairAccount *acc)
 {
     auto start = std::chrono::system_clock::now();
-    struct rusage usage;
     while (acc->running)
     {
         auto end = std::chrono::system_clock::now();
@@ -321,8 +319,6 @@ void BetFairAccount::doit(BetFairAccount *acc)
         {
             start = std::chrono::system_clock::now();
             acc->keepAlive();
-            getrusage(RUSAGE_SELF, &usage);
-            cout << "-----" << usage.ru_maxrss << endl;
         }
         this_thread::sleep_for(chrono::seconds(1));
     }
