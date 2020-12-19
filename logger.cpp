@@ -14,7 +14,7 @@ class telegram_sink : public spdlog::sinks::base_sink<Mutex>
 {
 private:
     Telegram tg;
-    const string chat; // 128218639;
+    const string chat;
 
 protected:
     void sink_it_(const spdlog::details::log_msg &msg) override

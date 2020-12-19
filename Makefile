@@ -5,7 +5,7 @@ release:	CPP_FLAGS       = -Wall -c -I. -O2 -std=c++14 -fpic
 MKDIR_P			= mkdir -p
 
 OPENSSL_DIR		= /usr/local/opt/openssl
-LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -lssl -lz -lcrypto -lfmt -lspdlog
+LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -lssl -lz -lcrypto -lfmt -lspdlog -lpthread
 HEADERS			= -I$(OPENSSL_DIR)/include -I./spdlog/
 
 LD              = g++
@@ -16,7 +16,6 @@ say				= say "Done"
 
 BUILD_DIR		= ./build
 SOURCES			= $(wildcard pugixml/*.cpp) $(wildcard channel/*.cpp) $(wildcard strategy/*.cpp) $(wildcard *.cpp)
-#SOURCES			= main.cpp 
 OBJECTS         = $(SOURCES:%=$(BUILD_DIR)/%.o)
 
 debug:	clear clean_exe ${OBJECTS} ${EXE} say
@@ -27,7 +26,6 @@ all:	${OBJECTS} ${EXE}
 ${EXE}: ${OBJECTS}
 	${LD} -o ./$@ ${OBJECTS} ${LIBRARY_DIRS} ${LD_FLAGS}
 
-#${OBJECTS}: ${SOURCES}
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
 	${CPP} ${CPP_FLAGS} -c $< -o $@ $(HEADERS)
