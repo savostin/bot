@@ -1,7 +1,7 @@
 /.vscode
 /bot
 /build
-/log
+/log/*
 /openssl/lib
 *.a
 *.dynlib

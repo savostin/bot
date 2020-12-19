@@ -13,6 +13,7 @@ HTTP::HTTP(const string _host) : client(_host.c_str()), host(_host)
         {"Accept", "*/*"}};
     logger = Logger::logger("HTTP");
     logger->set_level(spdlog::level::info);
+    logger->info("{}", OPENSSL_VERSION_TEXT);
     client.set_tcp_nodelay(true);
     client.set_keep_alive(true);
     client.set_default_headers(headers);
