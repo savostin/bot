@@ -50,7 +50,6 @@ void signal_handler(int)
 
 int main(int argc, char **argv)
 {
-	signal(SIGINT, signal_handler);
 
 	argagg::parser argparser{{
 		{"version", {"-V", "--version"}, "Print version and exit", 0},
@@ -113,6 +112,7 @@ int main(int argc, char **argv)
 		Logger::setTelegram(t_chat, t_key);
 	}
 
+	signal(SIGINT, signal_handler);
 	logger = Logger::logger("APP");
 	logger->set_level(spdlog::level::info);
 	logger->info("Welcome to {} v.{}.{}.{}!", VERSION_NAME, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
