@@ -1,12 +1,27 @@
+ifeq ($(OS),Windows_NT) 
+    OS := Windows
+else
+    OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
+endif
+
 CPP             = g++
 RM              = rm -f
 debug:		CPP_FLAGS       = -Wall -Wextra -c -I. -O0 -std=c++14 -fpic -DDEBUG -g
 release:	CPP_FLAGS       = -Wall -c -I. -O2 -std=c++14 -fpic
 MKDIR_P			= mkdir -p
 
-OPENSSL_DIR		= /usr/local/opt/openssl
-LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -lssl -lz -lcrypto -lfmt -lspdlog -lpthread
-HEADERS			= -I$(OPENSSL_DIR)/include -I./spdlog/
+ifeq ($(OS),Windows)
+    OPENSSL_DIR		= /usr/local/opt/openssl
+endif
+ifeq ($(OS),Darwin)
+    OPENSSL_DIR		= /usr/local/opt/openssl
+endif
+ifeq ($(OS),Linux)
+    OPENSSL_DIR		= ./openssl
+endif
+
+LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -L./fmt/ -lssl -lz -lcrypto -lfmt -lspdlog -lpthread
+HEADERS			= -I$(OPENSSL_DIR)/include
 
 LD              = g++
 debug: LD_FLAGS        = -Wall -Wextra -O0
@@ -14,11 +29,11 @@ release: LD_FLAGS        = -Wall -O2
 EXE				= bot
 say				= say "Done"
 
-BUILD_DIR		= ./build
-SOURCES			= $(wildcard pugixml/*.cpp) $(wildcard channel/*.cpp) $(wildcard strategy/*.cpp) $(wildcard *.cpp)
-OBJECTS         = $(SOURCES:%=$(BUILD_DIR)/%.o)
+BUILD_DIR	= ./build
+SOURCES		= $(wildcard pugixml/*.cpp) $(wildcard channel/*.cpp) $(wildcard strategy/*.cpp) $(wildcard *.cpp)
+OBJECTS		= $(SOURCES:%=$(BUILD_DIR)/%.o)
 
-debug:	clear clean_exe ${OBJECTS} ${EXE} say
+debug:		clear clean_exe ${OBJECTS} ${EXE} say
 release:	clear clean_exe ${OBJECTS} ${EXE}
 
 all:	${OBJECTS} ${EXE}
