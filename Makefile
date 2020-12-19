@@ -1,25 +1,10 @@
-ifeq ($(OS),Windows_NT) 
-    OS := Windows
-else
-    OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
-endif
-
 CPP             = g++
 RM              = rm -f
 debug:		CPP_FLAGS       = -Wall -Wextra -c -I. -O0 -std=c++14 -fpic -DDEBUG -g
 release:	CPP_FLAGS       = -Wall -c -I. -O2 -std=c++14 -fpic
 MKDIR_P			= mkdir -p
 
-ifeq ($(OS),Windows)
-    OPENSSL_DIR		= /usr/local/opt/openssl
-endif
-ifeq ($(OS),Darwin)
-    OPENSSL_DIR		= /usr/local/opt/openssl
-endif
-ifeq ($(OS),Linux)
-    OPENSSL_DIR		= ./openssl
-endif
-
+OPENSSL_DIR		= ./openssl
 LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -L./fmt/ -lssl -lz -lcrypto -lfmt -lspdlog -lpthread
 HEADERS			= -I$(OPENSSL_DIR)/include
 
