@@ -59,6 +59,10 @@ int main(int argc, char **argv)
 		{"username", {"-u", "--user"}, "BetFair username", 1},
 		{"password", {"-p", "--password"}, "BetFair password", 1},
 		{"port", {"--port"}, "Web-interface port", 1},
+		{"proxy_server", {"--proxy-server"}, "Proxy server", 1},
+		{"proxy_port", {"--proxy-port"}, "Proxy port", 1},
+		{"proxy_username", {"--proxy-username"}, "Proxy username", 1},
+		{"proxy_password", {"--proxy-password"}, "Proxy password", 1},
 		{"telegram_chat", {"-c", "--chat"}, "Telegram chat id", 1},
 		{"telegram_key", {"-k", "--key"}, "Telegram bot key", 1},
 	}};
@@ -90,6 +94,11 @@ int main(int argc, char **argv)
 	string logs = args["logs"].as<string>("./logs/");
 	Logger::setDir(logs);
 
+	if (args["proxy_port"] && args["proxy_server"])
+	{
+		HTTP::setProxy(args["proxy_server"].as<string>(""), args["proxy_port"].as<int>(0), args["proxy_username"].as<string>(""), args["proxy_password"].as<string>(""));
+	}
+
 	string username = args["username"].as<string>("");
 	while (username.empty())
 	{
@@ -113,7 +122,7 @@ int main(int argc, char **argv)
 		string t_key = args["telegram_key"].as<string>("");
 		Logger::setTelegram(t_chat, t_key);
 	}
-	
+
 	Server server;
 	unsigned int port = args["port"].as<unsigned int>(0);
 	if (port > 0)
@@ -125,7 +134,7 @@ int main(int argc, char **argv)
 	logger = Logger::logger("APP");
 	logger->set_level(spdlog::level::info);
 	logger->info("Welcome to {} v.{}.{}.{}!", VERSION_NAME, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-    logger->info("{}", OPENSSL_VERSION_TEXT);
+	logger->info("{}", OPENSSL_VERSION_TEXT);
 	if (!t_chat.empty() && !args["telegram_key"])
 	{
 		logger->warn("Telegram key is empty! Your Telegram messages will be sent through a proxy.");
@@ -143,7 +152,9 @@ int main(int argc, char **argv)
 				(*it)->finish();
 				delete *it;
 			}
-		} else {
+		}
+		else
+		{
 			logger->error("Login failed");
 		}
 	}

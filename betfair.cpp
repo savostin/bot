@@ -30,7 +30,7 @@ BetFair::~BetFair()
 xml_document BetFair::getSnapshot(const int id)
 {
     logger->debug("getSnapshot {}", id);
-    return Request(fmt::format("/rest/v1/channels/{}/snapshot", id), HTTP::nothing);
+    return Request(fmt::format("/rest/v1/channels/{}/snapshot", id), HTTP::no_xml);
 }
 
 BetFairAccount::BetFairAccount() : BetFair(), username(""), password(""), available(0), running(true), th()
@@ -72,7 +72,7 @@ bool BetFairAccount::login(const string _username, const string _password)
 
 bool BetFairAccount::getFunds()
 {
-    xml_document doc = Request(fmt::format("/rest/v1/account/snapshot?username={}", username), HTTP::nothing);
+    xml_document doc = Request(fmt::format("/rest/v1/account/snapshot?username={}", username), HTTP::no_xml);
     if (lastStatus == 200)
     {
         xml_node root = doc.child("accountSnapshot");
@@ -145,7 +145,7 @@ vector<Bet> BetFairAccount::getBetsHistory(const string &status)
 {
     vector<Bet> bets;
     logger->debug("Getting bets history of {} bets", status);
-    xml_document doc = Request(fmt::format("/rest/v1/bet/history?username={}&betStatus={}", username, status), HTTP::nothing);
+    xml_document doc = Request(fmt::format("/rest/v1/bet/history?username={}&betStatus={}", username, status), HTTP::no_xml);
     if (doc)
     {
         xml_node root = doc.child("betHistory");
@@ -210,7 +210,7 @@ vector<Bet> BetFairAccount::getBets(const unsigned long channel, const string &s
 {
     vector<Bet> bets;
     logger->debug("Getting current {} bets for channel {}", status, channel);
-    xml_document doc = Request(fmt::format("/rest/v1/bet/snapshot?username={}&betStatus={}&channelId={:d}", username, status, channel), HTTP::nothing);
+    xml_document doc = Request(fmt::format("/rest/v1/bet/snapshot?username={}&betStatus={}&channelId={:d}", username, status, channel), HTTP::no_xml);
     if (doc)
     {
         xml_node root = doc.child("betSnapshot");
@@ -263,7 +263,7 @@ vector<Statement> BetFairAccount::getStatement(const ChannelType channel, const 
     string channelName = Channel::getNameSimple(channel);
     string typeName = "";
     logger->debug("Getting account statement for channel {} {} / {}", channelName, count, from);
-    xml_document doc = Request(fmt::format("/rest/v1/account/statement?username={}&recordCount={:d}&startRecord={:d}{}", username, count, from, (channel == UNKNOWN ? "" : fmt::format("&account={}", channelName))), HTTP::nothing);
+    xml_document doc = Request(fmt::format("/rest/v1/account/statement?username={}&recordCount={:d}&startRecord={:d}{}", username, count, from, (channel == UNKNOWN ? "" : fmt::format("&account={}", channelName))), HTTP::no_xml);
     if (doc)
     {
         xml_node root = doc.child("accountStatement");

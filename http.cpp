@@ -1,6 +1,7 @@
 #include "http.h"
 
-xml_document HTTP::nothing = xml_document();
+xml_document HTTP::no_xml = xml_document();
+Proxy HTTP::proxy = {};
 
 HTTP::HTTP(const string _host) : client(_host.c_str()), lastError(""), lastStatus(0), host(_host)
 {
@@ -12,6 +13,10 @@ HTTP::HTTP(const string _host) : client(_host.c_str()), lastError(""), lastStatu
                 {"User-Agent", "BF-bj 1.0.1"},
                 {"Accept-Encoding", "gzip, deflate"},
                 {"Accept", "*/*"}});
+    if(HTTP::proxy.port > 0) {
+        client.set_proxy(HTTP::proxy.server.c_str(), HTTP::proxy.port);
+        client.set_proxy_basic_auth(HTTP::proxy.username.c_str(), HTTP::proxy.password.c_str());
+    }
 }
 
 HTTP::~HTTP()
@@ -68,7 +73,7 @@ xml_document HTTP::Request(const string &url, xml_document &data)
 {
     xml_document doc;
     struct xml_string_writer xw;
-    if (data != HTTP::nothing)
+    if (data != HTTP::no_xml)
     {
         data.save(xw);
     }
@@ -165,4 +170,12 @@ void HTTP::setKeepAlive(bool keep)
         addHeaders({{"Connection", "Keep-Alive"},
                     {"Keep-Alive", "timeout=50, max=10000"}});
     }
+}
+
+void HTTP::setProxy(const string &server, const unsigned int port, const string username, const string password) 
+{
+proxy.server = server;
+proxy.port = port;
+proxy.username = username;
+proxy.password = password;
 }

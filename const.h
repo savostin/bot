@@ -168,10 +168,17 @@ struct Bet
     chrono::system_clock::time_point placed = chrono::system_clock::now();
 };
 
-struct Funds 
+struct Funds
 {
     float available;
     string currency;
 };
 
+struct Proxy
+{
+    string server = "";
+    unsigned int port = 0;
+    string username = "";
+    string password = "";
+};
 #endif
