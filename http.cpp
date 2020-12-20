@@ -4,20 +4,14 @@ xml_document HTTP::nothing = xml_document();
 
 HTTP::HTTP(const string _host) : client(_host.c_str()), lastError(""), lastStatus(0), host(_host)
 {
-    headers = {
-        {"Cache-Control", "no-cache"},
-        {"User-Agent", "BF-bj 1.0.1"},
-        {"Accept-Encoding", "gzip, deflate"},
-        {"Connection", "Keep-Alive"},
-        {"Keep-Alive", "timeout=50, max=10000"},
-        {"Accept", "*/*"}};
     logger = Logger::logger("HTTP");
     logger->set_level(spdlog::level::info);
-    logger->info("{}", OPENSSL_VERSION_TEXT);
     client.set_tcp_nodelay(true);
-    client.set_keep_alive(true);
-    client.set_default_headers(headers);
     client.enable_server_certificate_verification(false);
+    addHeaders({{"Cache-Control", "no-cache"},
+                {"User-Agent", "BF-bj 1.0.1"},
+                {"Accept-Encoding", "gzip, deflate"},
+                {"Accept", "*/*"}});
 }
 
 HTTP::~HTTP()
@@ -51,7 +45,7 @@ string HTTP::Request(const string &url, const string &data, const string &conten
     httplib::Result res = data.empty() ? client.Get(url.c_str()) : client.Post(url.c_str(), data, contentType.c_str());
     if (res)
     {
-        logger->debug("{}: {}, {}", url, res->status, res.error());
+        logger->debug("{} {}: {}, {}", (data.empty() ? "GET" : "POST"), url, res->status, res.error());
         lastStatus = res->status;
         if (res->status == 200)
         {
@@ -94,7 +88,7 @@ xml_document HTTP::Request(const string &url, xml_document &data)
 
 json HTTP::Request(const string &url, json &data)
 {
-    string res = Request(url, data.dump(), "application/json");
+    string res = Request(url, data.empty() ? "" : data.dump(), "application/json");
     try
     {
         return json::parse(res.c_str());
@@ -102,6 +96,10 @@ json HTTP::Request(const string &url, json &data)
     catch (json::parse_error &e)
     {
         logger->error(e.what());
+    }
+    catch (...)
+    {
+        logger->error("JSON parse error: {}", res);
     }
     return json();
 }
@@ -150,5 +148,21 @@ string HTTP::error(httplib::Error code)
         return "Compression failed";
         break;
     }
-return "WTF";
+    return "WTF";
+}
+
+void HTTP::setKeepAlive(bool keep)
+{
+    client.set_keep_alive(keep);
+    removeHeader("Connection");
+    removeHeader("Keep-Alive");
+    if (keep)
+    {
+        addHeaders({{"Connection", "close"}});
+    }
+    else
+    {
+        addHeaders({{"Connection", "Keep-Alive"},
+                    {"Keep-Alive", "timeout=50, max=10000"}});
+    }
 }

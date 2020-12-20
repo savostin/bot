@@ -1,5 +1,6 @@
 #include "const.h"
 #include "channel.h"
+#include "server.h"
 #include <csignal>
 #include "argagg.hpp"
 
@@ -57,6 +58,7 @@ int main(int argc, char **argv)
 		{"logs", {"-l", "--logs"}, "Location of logs dir [./logs/]", 1},
 		{"username", {"-u", "--user"}, "BetFair username", 1},
 		{"password", {"-p", "--password"}, "BetFair password", 1},
+		{"port", {"--port"}, "Web-interface port", 1},
 		{"telegram_chat", {"-c", "--chat"}, "Telegram chat id", 1},
 		{"telegram_key", {"-k", "--key"}, "Telegram bot key", 1},
 	}};
@@ -111,11 +113,19 @@ int main(int argc, char **argv)
 		string t_key = args["telegram_key"].as<string>("");
 		Logger::setTelegram(t_chat, t_key);
 	}
+	
+	Server server;
+	unsigned int port = args["port"].as<unsigned int>(0);
+	if (port > 0)
+	{
+		server.start(port);
+	}
 
 	signal(SIGINT, signal_handler);
 	logger = Logger::logger("APP");
 	logger->set_level(spdlog::level::info);
 	logger->info("Welcome to {} v.{}.{}.{}!", VERSION_NAME, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+    logger->info("{}", OPENSSL_VERSION_TEXT);
 	if (!t_chat.empty() && !args["telegram_key"])
 	{
 		logger->warn("Telegram key is empty! Your Telegram messages will be sent through a proxy.");
@@ -151,6 +161,7 @@ int main(int argc, char **argv)
 	{
 		exit_code = EXIT_FAILURE;
 	}
+	server.stop();
 	logger->info("Bye!");
 	delete BetFair::account();
 

@@ -28,6 +28,7 @@ public:
     json Request(const string &url, json &data);
     static xml_document nothing;
     static string error(httplib::Error code);
+    void setKeepAlive(bool keep);
 };
 
 #endif

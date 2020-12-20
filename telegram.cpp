@@ -2,12 +2,7 @@
 
 Telegram::Telegram(const string _token) : HTTP(_token.empty() ? "https://bf-bj.com" : "https://api.telegram.org"), token(_token)
 {
-    client.set_keep_alive(false);
-    removeHeader("Connection");
-    removeHeader("Keep-Alive");
-    addHeaders({
-        {"Connection", "close"}
-    });
+    setKeepAlive(false);
 }
 
 Telegram::~Telegram()

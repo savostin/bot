@@ -18,6 +18,7 @@ map<string, float> BetFairAccount::minBetAmount{
 
 BetFair::BetFair() : HTTP("https://api.games.betfair.com")
 {
+    setKeepAlive(true);
     logger = Logger::logger("BETFAIR");
     logger->set_level(spdlog::level::info);
 }

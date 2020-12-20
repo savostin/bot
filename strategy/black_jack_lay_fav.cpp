@@ -69,7 +69,7 @@ void StBlackJackLayFav::run(struct Data data)
                                     bet.selection = selection;
                                     bet.price = selection.layPrice.price;
                                     bet.amount = 4 / (bet.price - 1);
-                                    BetFair::account()->placeBet(bet);
+                                    //BetFair::account()->placeBet(bet);
                                     return;
                                 }
                             }
