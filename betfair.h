@@ -28,8 +28,7 @@ class BetFairAccount : public BetFair
 private:
     string username;
     string password;
-    float funds;
-    string currency;
+    float available;
     static map<string, float> minBetAmount;
     static chrono::system_clock::time_point str2time(const string & str);
     logger_p logger;
@@ -38,14 +37,17 @@ private:
     thread th;
 
 public:
+    string currency;
     BetFairAccount();
     ~BetFairAccount();
     bool login(const string username, const string password);
     bool getFunds();
+    Funds funds();
     bool placeBet(struct Bet &bet);
     void keepAlive();
     vector<Bet> getBets(const unsigned long channel, const string &status = "ACTIVE");
     vector<Bet> getBetsHistory(const string &status = "SETTLED");
+    float getMarketPL(const int marketId);
     vector<Statement> getStatement(const ChannelType channel = UNKNOWN, const int count = 100, const int from = 0);
 
     float minBet(float amount);

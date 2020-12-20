@@ -33,7 +33,7 @@ xml_document BetFair::getSnapshot(const int id)
     return Request(fmt::format("/rest/v1/channels/{}/snapshot", id), HTTP::nothing);
 }
 
-BetFairAccount::BetFairAccount() : BetFair(), username(""), password(""), funds(0), running(true), th()
+BetFairAccount::BetFairAccount() : BetFair(), username(""), password(""), available(0), running(true), th()
 {
     logger = Logger::logger("ACCOUNT");
     logger->set_level(spdlog::level::info);
@@ -79,8 +79,7 @@ bool BetFairAccount::getFunds()
         if (root)
         {
             currency = root.attribute("currency").as_string();
-            funds = stof(root.child_value("availableToBetBalance"));
-            logger->warn("Funds: {:.2f} {}", funds, currency);
+            available = stof(root.child_value("availableToBetBalance"));
             return true;
         }
         logger->error("No account snapshot");
@@ -90,6 +89,14 @@ bool BetFairAccount::getFunds()
         logger->error("Wrong username/password?");
     }
     return false;
+}
+
+Funds BetFairAccount::funds()
+{
+    Funds f;
+    f.available = available;
+    f.currency = currency;
+    return f;
 }
 
 bool BetFairAccount::placeBet(struct Bet &bet)
@@ -117,6 +124,7 @@ bool BetFairAccount::placeBet(struct Bet &bet)
         bet.id = atol(betResult.child_value("betId"));
         logger->warn("Bet result: {}, id {}", betResult.child_value("resultCode"), betResult.child_value("betId"));
         getFunds();
+        logger->warn("Funds: {:.2f} {}", available, currency);
         return true;
     }
     else
@@ -130,7 +138,7 @@ bool BetFairAccount::placeBet(struct Bet &bet)
 void BetFairAccount::keepAlive()
 {
     logger->debug("Keep alive");
-    xml_document doc = Request(fmt::format("/rest/v1/account/snapshot?username={}", username), HTTP::nothing);
+    getFunds();
 }
 
 vector<Bet> BetFairAccount::getBetsHistory(const string &status)
@@ -183,6 +191,19 @@ vector<Bet> BetFairAccount::getBetsHistory(const string &status)
         logger->error("Non-xml response");
     }
     return bets;
+}
+
+float BetFairAccount::getMarketPL(const int marketId)
+{
+    float pl = 0;
+    vector<Bet> bh = getBetsHistory();
+    for (vector<Bet>::iterator i = bh.begin(); i != bh.end(); i++)
+    {
+        if((*i).market.id == marketId) {
+            pl += (*i).pl;
+        }
+    }
+    return pl;
 }
 
 vector<Bet> BetFairAccount::getBets(const unsigned long channel, const string &status)
@@ -258,7 +279,8 @@ vector<Statement> BetFairAccount::getStatement(const ChannelType channel, const 
             {
                 s.type = PL;
                 typeName = "P/L";
-                s.description = fmt::format("{} {:.2f} {} @ {:.2f} '{}': {}",
+                s.description = fmt::format("{} - {} {:.2f} {} @ {:.2f} '{}': {}",
+                                            asdb.child("selectionReference").child("marketReference").child_value("channelName"),
                                             asdb.child_value("bidType"),
                                             stof(asdb.child_value("size")),
                                             currency,
@@ -278,7 +300,7 @@ vector<Statement> BetFairAccount::getStatement(const ChannelType channel, const 
             {
                 s.type = COMMISSION;
                 typeName = "COMMISSION";
-                s.description = fmt::format("{}%", asdc.child_value("commissionRate"));
+                s.description = fmt::format("{}% - {}", asdc.child_value("commissionRate"), asdc.child("marketReference").child_value("channelName"));
             }
             logger->debug("Got record {:d}: {:%Y-%m-%d %H:%M:%S} {} {:+.2f} {:.2f} {}",
                           s.id,

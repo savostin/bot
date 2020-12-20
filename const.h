@@ -5,7 +5,6 @@
 #define SPDLOG_NO_THREAD_ID
 #define SPDLOG_FMT_EXTERNAL
 
-
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -15,7 +14,6 @@
 #include <vector>
 #include <curses.h>
 
-
 #include "pugixml/pugixml.hpp"
 #include "json/json.hpp"
 
@@ -24,7 +22,10 @@
 #include "fmt/format.h"
 #include "fmt/chrono.h"
 
-#define SPDLOG_SHORT_LEVEL_NAMES { "❗", "🔔", "💡", "👉", "❌", "💀", "O" }
+#define SPDLOG_SHORT_LEVEL_NAMES          \
+    {                                     \
+        "❗", "🔔", "💡", "👉", "❌", "💀", "O" \
+    }
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/daily_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -38,7 +39,8 @@
 
 using namespace std;
 using namespace pugi;
-using json = nlohmann::json;
+//using json = nlohmann::json;
+using json = nlohmann::basic_json<std::map, std::vector, std::string, bool, std::int64_t, std::uint64_t, float>;
 
 #define SOFTWARE "Individual.com.bfbj.1.0"
 
@@ -107,6 +109,13 @@ enum StatementType
     WITHDRAWAL
 };
 
+NLOHMANN_JSON_SERIALIZE_ENUM(StatementType, {
+                                                {PL, "P/L"},
+                                                {COMMISSION, "COMMISSION"},
+                                                {DEPOSIT, "DEPOSIT"},
+                                                {WITHDRAWAL, "WITHDRAWAL"},
+                                            })
+
 struct Statement
 {
     unsigned long id;
@@ -115,6 +124,17 @@ struct Statement
     string description;
     float amount = 0;
     float balance = 0;
+    json toJson()
+    {
+        json j = {
+            {"id", id},
+            {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(chrono::system_clock::to_time_t(timestamp)))},
+            {"type", type},
+            {"description", description},
+            {"amount", amount},
+            {"balance", balance}};
+        return j;
+    }
 };
 
 enum Side
@@ -146,6 +166,12 @@ struct Bet
     BetStatus status = BetReady;
     float pl = 0;
     chrono::system_clock::time_point placed = chrono::system_clock::now();
+};
+
+struct Funds 
+{
+    float available;
+    string currency;
 };
 
 #endif

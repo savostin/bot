@@ -28,8 +28,10 @@ void StBlackJackLayFav::run(struct Data data)
             if (data.round == 1 && placedGameId)
             {
                 vector<Statement> stmt = BetFair::account()->getStatement(BLACK_JACK_TURBO, 3);
-                BetFair::account()->getFunds();
+                float pl = BetFair::account()->getMarketPL(placedMarketId);
+                logger->warn("Last game p/l: {:+.2f}", pl);
                 placedGameId = 0;
+                placedMarketId = 0;
             }
             else if (data.round == 2)
             {
@@ -62,6 +64,7 @@ void StBlackJackLayFav::run(struct Data data)
                                 {
                                     logger->info("{:d}: LAY {} - {:.2f} EUR @ {:.2f}", data.id, selection.name, 4 / (selection.layPrice.price - 1), selection.layPrice.price);
                                     placedGameId = data.id;
+                                    placedMarketId = data.markets[mi].id;
                                     Bet bet;
                                     bet.round = data.round;
                                     bet.market = data.markets[mi];

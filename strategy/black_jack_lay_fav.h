@@ -8,6 +8,7 @@ class StBlackJackLayFav : public BlackJack
 {
 private:
     unsigned long placedGameId;
+    unsigned long placedMarketId;
     unsigned long checkedGameId;
     unsigned long lastGameId;
     logger_p logger;
