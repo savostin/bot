@@ -50,7 +50,7 @@ void signal_handler(int)
 
 int main(int argc, char **argv)
 {
-
+	int exit_code = EXIT_SUCCESS;
 	argagg::parser argparser{{
 		{"version", {"-V", "--version"}, "Print version and exit", 0},
 		{"help", {"-h", "--help"}, "Shows this help message", 0},
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
 	if (args["version"])
 	{
-		cerr << VERSION_NAME << " v." << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << endl;
+		cout << VERSION_NAME << " v." << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << endl;
 		return EXIT_SUCCESS;
 	}
 
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 
 	try
 	{
-		if (BetFairAccount::get()->login(username, password))
+		if (BetFair::account()->login(username, password))
 		{
 			Channel *s = Channel::create(ST_BJT_LF);
 			s->start();
@@ -133,30 +133,26 @@ int main(int argc, char **argv)
 				(*it)->finish();
 				delete *it;
 			}
+		} else {
+			logger->error("Login failed");
 		}
 	}
 	catch (const std::bad_alloc &c)
 	{
-		system("say oops");
 		logger->error(c.what());
-		BetFairAccount::del();
-		return EXIT_FAILURE;
+		exit_code = EXIT_FAILURE;
 	}
 	catch (char *e)
 	{
-		system("say oops");
 		logger->error(e);
-		BetFairAccount::del();
-		return EXIT_FAILURE;
+		exit_code = EXIT_FAILURE;
 	}
 	catch (...)
 	{
-		system("say oops");
-		BetFairAccount::del();
-		return EXIT_FAILURE;
+		exit_code = EXIT_FAILURE;
 	}
 	logger->info("Bye!");
-	BetFairAccount::del();
+	delete BetFair::account();
 
-	return EXIT_SUCCESS;
+	return exit_code;
 }

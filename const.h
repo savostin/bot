@@ -31,7 +31,7 @@
 
 #include "logger.h"
 
-#define VERSION_NAME "BetFair BlackJack Bot"
+#define VERSION_NAME "BetFair Exchange Bot"
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 1
 #define VERSION_PATCH 10

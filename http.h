@@ -10,8 +10,9 @@ class HTTP
 {
 protected:
     httplib::Client client;
-private:
     string lastError;
+    int lastStatus;
+private:
     httplib::Headers headers;
     logger_p logger;
     string host;
@@ -26,6 +27,7 @@ public:
     xml_document Request(const string &url, xml_document &data);
     json Request(const string &url, json &data);
     static xml_document nothing;
+    static string error(httplib::Error code);
 };
 
 #endif

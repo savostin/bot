@@ -14,11 +14,13 @@ class BetFair : public HTTP
 {
 private:
     logger_p logger;
+    static BetFairAccount* _account;
 
 public:
     BetFair();
     ~BetFair();
     xml_document getSnapshot(const int id);
+    static BetFairAccount* account();
 };
 
 class BetFairAccount : public BetFair
@@ -34,7 +36,6 @@ private:
     static void doit(BetFairAccount *acc);
     bool running;
     thread th;
-    static BetFairAccount* account;
 
 public:
     BetFairAccount();
@@ -46,8 +47,6 @@ public:
     vector<Bet> getBets(const unsigned long channel, const string &status = "ACTIVE");
     vector<Bet> getBetsHistory(const string &status = "SETTLED");
     vector<Statement> getStatement(const ChannelType channel = UNKNOWN, const int count = 100, const int from = 0);
-    static BetFairAccount* get();
-    static void del();
 
     float minBet(float amount);
 };

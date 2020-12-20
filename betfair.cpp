@@ -2,7 +2,7 @@
 #include "channel.h"
 #include "md5.h"
 
-BetFairAccount *BetFairAccount::account = NULL;
+BetFairAccount *BetFair::_account = NULL;
 
 map<string, float> BetFairAccount::minBetAmount{
     {"EUR", 2},
@@ -47,19 +47,13 @@ BetFairAccount::~BetFairAccount()
     }
 }
 
-BetFairAccount *BetFairAccount::get()
+BetFairAccount *BetFair::account()
 {
-    if (BetFairAccount::account == NULL)
+    if (BetFair::_account == NULL)
     {
-        BetFairAccount::account = new BetFairAccount();
+        BetFair::_account = new BetFairAccount();
     }
-    return BetFairAccount::account;
-}
-
-void BetFairAccount::del()
-{
-    if (BetFairAccount::account)
-        delete BetFairAccount::account;
+    return BetFair::_account;
 }
 
 bool BetFairAccount::login(const string _username, const string _password)
@@ -78,15 +72,22 @@ bool BetFairAccount::login(const string _username, const string _password)
 bool BetFairAccount::getFunds()
 {
     xml_document doc = Request(fmt::format("/rest/v1/account/snapshot?username={}", username), HTTP::nothing);
-    xml_node root = doc.child("accountSnapshot");
-    if (root)
+    if (lastStatus == 200)
     {
-        currency = root.attribute("currency").as_string();
-        funds = stof(root.child_value("availableToBetBalance"));
-        logger->warn("Funds: {:.2f} {}", funds, currency);
-        return true;
+        xml_node root = doc.child("accountSnapshot");
+        if (root)
+        {
+            currency = root.attribute("currency").as_string();
+            funds = stof(root.child_value("availableToBetBalance"));
+            logger->warn("Funds: {:.2f} {}", funds, currency);
+            return true;
+        }
+        logger->error("No account snapshot");
     }
-    logger->error("No account snapshot");
+    else if (lastStatus == 401)
+    {
+        logger->error("Wrong username/password?");
+    }
     return false;
 }
 
@@ -124,7 +125,6 @@ bool BetFairAccount::placeBet(struct Bet &bet)
     bet.status = BetError;
     return false;
 }
-
 
 void BetFairAccount::keepAlive()
 {

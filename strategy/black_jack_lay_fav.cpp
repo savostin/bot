@@ -1,12 +1,14 @@
 #include "black_jack_lay_fav.h"
 #include "../channel.h"
 #include "card.h"
+#define V_MAJOR 1
+#define V_MINOR 1
 
 StBlackJackLayFav::StBlackJackLayFav(bool turbo) : BlackJack(turbo), placedGameId(0), checkedGameId(0), lastGameId(0)
 {
     logger = Logger::logger("BJ-LF");
     logger->set_level(spdlog::level::debug);
-    logger->debug("Create new strategy: BJ-LF");
+    logger->debug("Starting strategy: Black Jack Lay Favorite v.{}.{}", V_MAJOR, V_MINOR);
 }
 
 StBlackJackLayFav::~StBlackJackLayFav()
@@ -25,8 +27,8 @@ void StBlackJackLayFav::run(struct Data data)
             //logger->debug("Round: {:d}", data.round);
             if (data.round == 1 && placedGameId)
             {
-                vector<Statement> stmt = BetFairAccount::get()->getStatement(BLACK_JACK_TURBO, 3);
-                BetFairAccount::get()->getFunds();
+                vector<Statement> stmt = BetFair::account()->getStatement(BLACK_JACK_TURBO, 3);
+                BetFair::account()->getFunds();
                 placedGameId = 0;
             }
             else if (data.round == 2)
@@ -67,7 +69,7 @@ void StBlackJackLayFav::run(struct Data data)
                                     bet.selection = selection;
                                     bet.price = selection.layPrice.price;
                                     bet.amount = 4 / (bet.price - 1);
-                                    BetFairAccount::get()->placeBet(bet);
+                                    BetFair::account()->placeBet(bet);
                                     return;
                                 }
                             }

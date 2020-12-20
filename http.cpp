@@ -2,7 +2,7 @@
 
 xml_document HTTP::nothing = xml_document();
 
-HTTP::HTTP(const string _host) : client(_host.c_str()), host(_host)
+HTTP::HTTP(const string _host) : client(_host.c_str()), lastError(""), lastStatus(0), host(_host)
 {
     headers = {
         {"Cache-Control", "no-cache"},
@@ -17,6 +17,7 @@ HTTP::HTTP(const string _host) : client(_host.c_str()), host(_host)
     client.set_tcp_nodelay(true);
     client.set_keep_alive(true);
     client.set_default_headers(headers);
+    client.enable_server_certificate_verification(false);
 }
 
 HTTP::~HTTP()
@@ -29,7 +30,7 @@ void HTTP::addHeaders(httplib::Headers _headers)
     client.set_default_headers(headers);
 }
 
-void HTTP::removeHeader(const string &name) 
+void HTTP::removeHeader(const string &name)
 {
     headers.erase(name);
 }
@@ -45,22 +46,25 @@ struct xml_string_writer : xml_writer
 
 string HTTP::Request(const string &url, const string &data, const string &contentType)
 {
+    lastError = "";
+    lastStatus = 0;
     httplib::Result res = data.empty() ? client.Get(url.c_str()) : client.Post(url.c_str(), data, contentType.c_str());
     if (res)
     {
         logger->debug("{}: {}, {}", url, res->status, res.error());
+        lastStatus = res->status;
         if (res->status == 200)
         {
             return res->body;
         }
         logger->error("{}: Status: {} Error: {}", url, res->status, res.error());
-        cout << res->body;
+        cout << res->body << endl;
         lastError = res.error();
     }
     else
     {
-        logger->error("HTTP ERROR");
-        lastError = "HTTP ERROR";
+        logger->error("ERROR: {}", error(res.error()));
+        lastError = fmt::format("ERROR {}", error(res.error()));
         client.stop();
     }
     return "";
@@ -100,4 +104,51 @@ json HTTP::Request(const string &url, json &data)
         logger->error(e.what());
     }
     return json();
+}
+
+string HTTP::error(httplib::Error code)
+{
+    switch (code)
+    {
+    case httplib::Error::Success:
+        return "";
+        break;
+    case httplib::Error::Unknown:
+        return "Unknown error";
+        break;
+    case httplib::Error::Connection:
+        return "Unable to connect";
+        break;
+    case httplib::Error::BindIPAddress:
+        return "Unable to bind ip address";
+        break;
+    case httplib::Error::Read:
+        return "Socket read error";
+        break;
+    case httplib::Error::Write:
+        return "Socket write error";
+        break;
+    case httplib::Error::ExceedRedirectCount:
+        return "Exceed Redirect Count";
+        break;
+    case httplib::Error::Canceled:
+        return "Cancelled";
+        break;
+    case httplib::Error::SSLConnection:
+        return "SSL connection failed";
+        break;
+    case httplib::Error::SSLLoadingCerts:
+        return "SSL loading certs failed";
+        break;
+    case httplib::Error::SSLServerVerification:
+        return "SSL server verification failed";
+        break;
+    case httplib::Error::UnsupportedMultipartBoundaryChars:
+        return "Unsupported multipart boundary chars";
+        break;
+    case httplib::Error::Compression:
+        return "Compression failed";
+        break;
+    }
+return "WTF";
 }
