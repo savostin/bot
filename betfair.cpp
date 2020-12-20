@@ -67,7 +67,12 @@ bool BetFairAccount::login(const string _username, const string _password)
                 {"gamexAPIAgent", SOFTWARE},
                 {"gamexAPIAgentInstance", MD5String(instance)}});
     th = thread{doit, this};
-    return getFunds();
+    if (getFunds())
+    {
+        logger->warn("Funds: {:.2f} {}", available, currency);
+        return true;
+    }
+    return false;
 }
 
 bool BetFairAccount::getFunds()
@@ -199,7 +204,8 @@ float BetFairAccount::getMarketPL(const int marketId)
     vector<Bet> bh = getBetsHistory();
     for (vector<Bet>::iterator i = bh.begin(); i != bh.end(); i++)
     {
-        if((*i).market.id == marketId) {
+        if ((*i).market.id == marketId)
+        {
             pl += (*i).pl;
         }
     }

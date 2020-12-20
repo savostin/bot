@@ -5,7 +5,7 @@ release:	CPP_FLAGS       = -Wall -c -I. -O2 -std=c++14 -fpic
 MKDIR_P			= mkdir -p
 
 OPENSSL_DIR		= ./openssl
-LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -L./fmt/ -lssl -lz -lcrypto -lfmt -lspdlog -lpthread
+LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -L./fmt/ -lssl -lz -lcrypto -lfmt -lspdlog -lpthread -ldl
 HEADERS			= -I$(OPENSSL_DIR)/include
 
 LD              = g++
