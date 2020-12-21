@@ -14,6 +14,7 @@ private:
     thread th;
     unsigned int port;
     static void doit(Server *s);
+    json jinit();
 
 public:
     Server();

@@ -6,7 +6,7 @@ map<const ChannelType, Channel *> Channel::channels;
 condition_variable cv;
 mutex m;
 
-Channel::Channel(const ChannelType type) : BetFair(), th(), paused(true), running(true), id(type)
+Channel::Channel(const ChannelType type) : BetFair(), th(), _status(UNDEFINED), id(type)
 {
     logger = Logger::logger(Channel::getName(type).data());
     logger->set_level(spdlog::level::info);
@@ -26,9 +26,9 @@ void Channel::finish()
 void Channel::doit(const int rate, Channel *ths)
 {
     xml_document xml;
-    while (ths->running)
+    while (ths->status() != STOPPED)
     {
-        if (!ths->paused)
+        if (ths->status() == RUNNING)
         {
             xml = ths->getSnapshot(ths->id);
             if (xml)
@@ -40,50 +40,26 @@ void Channel::doit(const int rate, Channel *ths)
     }
 }
 
-void Channel::start()
+void Channel::status(ChannelStatus s)
 {
-    if (!running)
-    {
-        logger->info("Started");
-    }
-    paused = false;
+    _status = s;
+    json j = s;
+    logger->info("{}", j);
 }
 
-void Channel::stop()
+ChannelStatus Channel::status()
 {
-    if (running)
-    {
-        logger->info("Stopped");
-    }
-    running = false;
+    return _status;
 }
 
-void Channel::pause()
-{
-    if (!paused)
-    {
-        logger->info("Paused");
-    }
-    paused = true;
-}
-
-void Channel::resume()
-{
-    if (paused)
-    {
-        logger->info("Resumed");
-    }
-    paused = false;
-}
-
-string Channel::getName(ChannelType type)
+string Channel::getName(ChannelType type, bool u)
 {
     switch (type)
     {
     case BLACK_JACK_TURBO:
-        return "BLACK JACK TURBO";
+        return u ? "BLACK_JACK_TURBO" : "BLACK JACK TURBO";
     case BLACK_JACK:
-        return "BLACK JACK";
+        return u ? "BLACK_JACK" : "BLACK JACK";
     case UNKNOWN:
         return "CHANNEL";
     }
@@ -146,66 +122,29 @@ Channel *Channel::create(const StrategyType type)
     return ch;
 }
 
-void Channel::pause(const ChannelType t)
+void Channel::status(const ChannelType t, ChannelStatus s)
 {
     if (t == UNKNOWN)
     {
         for (map<const ChannelType, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
         {
-            it->second->pause();
+            it->second->status(s);
         }
     }
     else if (channels.find(t) != channels.end())
     {
-        channels[t]->pause();
+        channels[t]->status(s);
     }
 }
 
-void Channel::resume(const ChannelType t)
+ChannelStatus Channel::status(const ChannelType t)
 {
-    if (t == UNKNOWN)
+if (channels.find(t) != channels.end())
     {
-        for (map<const ChannelType, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
-        {
-            it->second->resume();
-        }
+        return channels[t]->status();
     }
-    else if (channels.find(t) != channels.end())
-    {
-        channels[t]->resume();
-    }
+return UNDEFINED;
 }
-
-void Channel::stop(const ChannelType t)
-{
-    if (t == UNKNOWN)
-    {
-        for (map<const ChannelType, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
-        {
-            it->second->stop();
-        }
-    }
-    else if (channels.find(t) != channels.end())
-    {
-        channels[t]->stop();
-    }
-}
-
-void Channel::start(const ChannelType t)
-{
-    if (t == UNKNOWN)
-    {
-        for (map<const ChannelType, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
-        {
-            it->second->start();
-        }
-    }
-    else if (channels.find(t) != channels.end())
-    {
-        channels[t]->start();
-    }
-}
-
 void Channel::finish(const ChannelType t)
 {
     if (t == UNKNOWN)

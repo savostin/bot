@@ -40,7 +40,6 @@
 
 using namespace std;
 using namespace pugi;
-//using json = nlohmann::json;
 using json = nlohmann::basic_json<std::map, std::vector, std::string, bool, std::int64_t, std::uint64_t, float>;
 
 #define SOFTWARE "Individual.com.bfbj.1.0"
@@ -65,6 +64,20 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ChannelType, {
                                                 {BLACK_JACK_TURBO, "BLACK_JACK_TURBO"},
                                             })
 
+enum ChannelStatus 
+{
+    UNDEFINED = 0,
+    STOPPED,
+    RUNNING,
+    PAUSED
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ChannelStatus, {
+                                                {UNDEFINED, "UNDEFINED"},
+                                                {STOPPED, "STOPPED"},
+                                                {RUNNING, "RUNNING"},
+                                                {PAUSED, "PAUSED"},
+                                            })
 
 struct Player
 {
@@ -203,6 +216,7 @@ struct Event
     EventType type;
     long long int data;
 };
+
 
 #include "events.h"
 

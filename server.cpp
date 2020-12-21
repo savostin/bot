@@ -1,12 +1,11 @@
 #include "server.h"
-#include "betfair.h"
+#include "channel.h"
 
 Server::Server() : th()
 {
     server.set_mount_point("/", "./www");
 
     server.Get("/statement.json", [&](const httplib::Request & /*req*/, httplib::Response &res) {
-        std::time_t t = std::time(nullptr);
         json items = json::array();
         vector<Statement> st = BetFair::account()->getStatement();
         logger->debug("Statement: {:d}", st.size());
@@ -14,12 +13,26 @@ Server::Server() : th()
         {
             items.push_back((*i).toJson());
         }
-        json j = {
-            {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))},
-            {"items", items}};
+        json j = jinit();
+        j["items"] = items;
         res.set_content(j.dump(), "application/json");
     });
-
+    server.Get("/channels.json", [&](const httplib::Request & /*req*/, httplib::Response &res) {
+        json channels = json::array();
+        for (map<const ChannelType, Channel *>::iterator i = Channel::channels.begin(); i != Channel::channels.end(); i++)
+        {
+            Channel *c = i->second;
+            channels.push_back({
+                {"id", (int)i->first},
+                {"name", Channel::getName(i->first)},
+                {"description", Channel::getName(i->first, false)},
+                {"status", c->status()},
+            });
+        }
+        json j = jinit();
+        j["channels"] = channels;
+        res.set_content(j.dump(), "application/json");
+    });
     server.Get("/control/(pause|resume)_([A-Z_]+).json", [&](const httplib::Request &req, httplib::Response &res) {
         string m = req.matches[1].str();
         string channel = req.matches[2].str();
@@ -36,32 +49,26 @@ Server::Server() : th()
             tp = E_RESUME;
         }
         Events::loop()->notify(tp, cht);
-        std::time_t t = std::time(nullptr);
-        json j = {
-            {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))},
-            {"result", "OK"}};
+        json j = jinit();
+        j["result"] = "OK";
         res.set_content(j.dump(), "application/json");
     });
 
-    server.Get("/control/exit.json", [&](const httplib::Request &/*req*/, httplib::Response &res) {
+    server.Get("/control/exit.json", [&](const httplib::Request & /*req*/, httplib::Response &res) {
         logger->debug("Control: exit");
         Events::loop()->notify(E_EXIT);
-        std::time_t t = std::time(nullptr);
-        json j = {
-            {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))},
-            {"result", "OK"}};
+        json j = jinit();
+        j["result"] = "OK";
         res.set_content(j.dump(), "application/json");
     });
 
     server.Get("/funds.json", [&](const httplib::Request & /*req*/, httplib::Response &res) {
-        std::time_t t = std::time(nullptr);
         json items = json::array();
         Funds funds = BetFair::account()->funds();
         logger->debug("Funds: {:.2f} {}", funds.available, funds.currency);
-        json j = {
-            {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))},
-            {"funds", funds.available},
-            {"currency", funds.currency}};
+        json j = jinit();
+        j["funds"] = funds.available;
+        j["currency"] = funds.currency;
         res.set_content(j.dump(), "application/json");
     });
 
@@ -98,4 +105,12 @@ void Server::doit(Server *s)
     {
         s->logger->error("Unable to bind http server on port {:d} - port is busy?", s->port);
     }
+}
+
+json Server::jinit()
+{
+    std::time_t t = std::time(nullptr);
+    json j = {
+        {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))}};
+    return j;
 }

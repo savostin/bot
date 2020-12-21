@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 		if (BetFair::account()->login(username, password))
 		{
 			Channel *s = Channel::create(ST_BJT_LF);
-			s->start();
+			s->status(RUNNING);
 			Event e;
 			bool is_running = true;
 			while (is_running)
@@ -156,17 +156,17 @@ int main(int argc, char **argv)
 					break;
 				case E_PAUSE:
 					t = (ChannelType)e.data;
-					Channel::pause(t);
+					Channel::status(t, PAUSED);
 					break;
 				case E_RESUME:
 					t = (ChannelType)e.data;
-					Channel::resume(t);
+					Channel::status(t, RUNNING);
 					break;
 				case E_NONE:
 					break;
 				}
 			}
-			Channel::stop(UNKNOWN);
+			Channel::status(UNKNOWN, STOPPED);
 			Channel::finish(UNKNOWN);
 		}
 		else
