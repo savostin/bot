@@ -3,8 +3,8 @@
 #include "server.h"
 #include <csignal>
 #include "argagg.hpp"
+#include "events.h"
 
-vector<Channel *> running;
 logger_p logger;
 
 #ifdef WIN32
@@ -42,11 +42,7 @@ void setStdinEcho(bool enable = true)
 
 void signal_handler(int)
 {
-	logger->info("Stopping...");
-	for (vector<Channel *>::iterator it = running.begin(); it != running.end(); it++)
-	{
-		(*it)->stop();
-	}
+	Events::loop()->notify(E_EXIT);
 }
 
 int main(int argc, char **argv)
@@ -146,12 +142,32 @@ int main(int argc, char **argv)
 		{
 			Channel *s = Channel::create(ST_BJT_LF);
 			s->start();
-			running.push_back(s);
-			for (vector<Channel *>::iterator it = running.begin(); it != running.end(); it++)
+			Event e;
+			bool is_running = true;
+			while (is_running)
 			{
-				(*it)->finish();
-				delete *it;
+				e = Events::loop()->pop();
+				ChannelType t = UNKNOWN;
+				switch (e.type)
+				{
+				case E_EXIT:
+					logger->info("Stopping...");
+					is_running = false;
+					break;
+				case E_PAUSE:
+					t = (ChannelType)e.data;
+					Channel::pause(t);
+					break;
+				case E_RESUME:
+					t = (ChannelType)e.data;
+					Channel::resume(t);
+					break;
+				case E_NONE:
+					break;
+				}
 			}
+			Channel::stop(UNKNOWN);
+			Channel::finish(UNKNOWN);
 		}
 		else
 		{

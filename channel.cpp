@@ -2,6 +2,7 @@
 #include "channel/black_jack.h"
 #include "strategy/black_jack_lay_fav.h"
 
+map<const ChannelType, Channel *> Channel::channels;
 condition_variable cv;
 mutex m;
 
@@ -41,25 +42,37 @@ void Channel::doit(const int rate, Channel *ths)
 
 void Channel::start()
 {
-    logger->info("Started");
+    if (!running)
+    {
+        logger->info("Started");
+    }
     paused = false;
 }
 
 void Channel::stop()
 {
-    logger->info("Stopped");
+    if (running)
+    {
+        logger->info("Stopped");
+    }
     running = false;
 }
 
 void Channel::pause()
 {
-    logger->info("Paused");
+    if (!paused)
+    {
+        logger->info("Paused");
+    }
     paused = true;
 }
 
 void Channel::resume()
 {
-    logger->info("Resumed");
+    if (paused)
+    {
+        logger->info("Resumed");
+    }
     paused = false;
 }
 
@@ -112,17 +125,103 @@ int Channel::favIndex(vector<Selection> &selections, const int max)
 
 Channel *Channel::create(const StrategyType type)
 {
+    Channel *ch;
+    ChannelType t;
     switch (type)
     {
     case ST_BJT_LF:
-        return new StBlackJackLayFav(true);
+        ch = new StBlackJackLayFav(true);
+        t = BLACK_JACK_TURBO;
         break;
     case ST_BJ_LF:
-        return new StBlackJackLayFav(false);
+        ch = new StBlackJackLayFav(false);
+        t = BLACK_JACK;
         break;
 
     default:
+        return NULL;
         break;
     }
-    return NULL;
+    channels[t] = ch;
+    return ch;
+}
+
+void Channel::pause(const ChannelType t)
+{
+    if (t == UNKNOWN)
+    {
+        for (map<const ChannelType, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
+        {
+            it->second->pause();
+        }
+    }
+    else if (channels.find(t) != channels.end())
+    {
+        channels[t]->pause();
+    }
+}
+
+void Channel::resume(const ChannelType t)
+{
+    if (t == UNKNOWN)
+    {
+        for (map<const ChannelType, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
+        {
+            it->second->resume();
+        }
+    }
+    else if (channels.find(t) != channels.end())
+    {
+        channels[t]->resume();
+    }
+}
+
+void Channel::stop(const ChannelType t)
+{
+    if (t == UNKNOWN)
+    {
+        for (map<const ChannelType, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
+        {
+            it->second->stop();
+        }
+    }
+    else if (channels.find(t) != channels.end())
+    {
+        channels[t]->stop();
+    }
+}
+
+void Channel::start(const ChannelType t)
+{
+    if (t == UNKNOWN)
+    {
+        for (map<const ChannelType, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
+        {
+            it->second->start();
+        }
+    }
+    else if (channels.find(t) != channels.end())
+    {
+        channels[t]->start();
+    }
+}
+
+void Channel::finish(const ChannelType t)
+{
+    if (t == UNKNOWN)
+    {
+        for (map<const ChannelType, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
+        {
+            it->second->finish();
+            delete it->second;
+        }
+        channels.clear();
+    }
+    else if (channels.find(t) != channels.end())
+    {
+        Channel *ch = channels[t];
+        ch->finish();
+        delete ch;
+        channels.erase(t);
+    }
 }

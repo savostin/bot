@@ -32,6 +32,13 @@ public:
     static int favIndex(vector<Selection> &selections, const int max = 100);
     static string getName(ChannelType type);
     static string getNameSimple(ChannelType type);
+
+    static map<const ChannelType, Channel *> channels;
+    static void pause(const ChannelType t);
+    static void resume(const ChannelType t);
+    static void stop(const ChannelType t);
+    static void start(const ChannelType t);
+    static void finish(const ChannelType t);
 };
 
 #endif

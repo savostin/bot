@@ -12,6 +12,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <map>
 #include <curses.h>
 
 #include "pugixml/pugixml.hpp"
@@ -52,11 +53,18 @@ enum StrategyType
 
 enum ChannelType
 {
+    UNKNOWN = 0,
     BLACK_JACK = 1444077,
     BLACK_JACK_TURBO = 1444082,
 
-    UNKNOWN = 999999
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ChannelType, {
+                                                {UNKNOWN, "ALL"},
+                                                {BLACK_JACK, "BLACK_JACK"},
+                                                {BLACK_JACK_TURBO, "BLACK_JACK_TURBO"},
+                                            })
+
 
 struct Player
 {
@@ -181,4 +189,22 @@ struct Proxy
     string username = "";
     string password = "";
 };
+
+enum EventType
+{
+    E_NONE,
+    E_EXIT,
+    E_PAUSE,
+    E_RESUME
+};
+
+struct Event
+{
+    EventType type;
+    long long int data;
+};
+
+#include "events.h"
+
+
 #endif

@@ -10,14 +10,46 @@ Server::Server() : th()
         json items = json::array();
         vector<Statement> st = BetFair::account()->getStatement();
         logger->debug("Statement: {:d}", st.size());
-        for(vector<Statement>::iterator i=st.begin(); i!=st.end(); i++)
-            {
-                items.push_back((*i).toJson());
-            }
+        for (vector<Statement>::iterator i = st.begin(); i != st.end(); i++)
+        {
+            items.push_back((*i).toJson());
+        }
         json j = {
             {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))},
-            {"items", items}
-        };
+            {"items", items}};
+        res.set_content(j.dump(), "application/json");
+    });
+
+    server.Get("/control/(pause|resume)_([A-Z_]+).json", [&](const httplib::Request &req, httplib::Response &res) {
+        string m = req.matches[1].str();
+        string channel = req.matches[2].str();
+        json tmp = channel;
+        ChannelType cht = tmp.get<ChannelType>();
+        logger->debug("Control: {} {} ({:d})", m, channel, cht);
+        EventType tp = E_NONE;
+        if (m == "pause")
+        {
+            tp = E_PAUSE;
+        }
+        else if (m == "resume")
+        {
+            tp = E_RESUME;
+        }
+        Events::loop()->notify(tp, cht);
+        std::time_t t = std::time(nullptr);
+        json j = {
+            {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))},
+            {"result", "OK"}};
+        res.set_content(j.dump(), "application/json");
+    });
+
+    server.Get("/control/exit.json", [&](const httplib::Request &/*req*/, httplib::Response &res) {
+        logger->debug("Control: exit");
+        Events::loop()->notify(E_EXIT);
+        std::time_t t = std::time(nullptr);
+        json j = {
+            {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))},
+            {"result", "OK"}};
         res.set_content(j.dump(), "application/json");
     });
 
@@ -29,8 +61,7 @@ Server::Server() : th()
         json j = {
             {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))},
             {"funds", funds.available},
-            {"currency", funds.currency}
-        };
+            {"currency", funds.currency}};
         res.set_content(j.dump(), "application/json");
     });
 
@@ -61,7 +92,7 @@ Server::~Server()
 void Server::doit(Server *s)
 {
     s->logger->debug("Getting ip address...");
-    
+
     s->logger->info("Starting web-server on http://localhost:{:d}/", s->port);
     if (!s->server.listen("127.0.0.1", s->port))
     {
