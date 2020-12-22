@@ -1,7 +1,8 @@
 #include "server.h"
 #include "channel.h"
+#include "sqlite.h"
 
-Server::Server() : th(), db(fmt::format("{}/log.db", Logger::dir), Logger::password)
+Server::Server() : th()
 {
     server.set_mount_point("/", "./www");
 
@@ -36,21 +37,10 @@ Server::Server() : th(), db(fmt::format("{}/log.db", Logger::dir), Logger::passw
     });
 
     server.Get("/log.json", [&](const httplib::Request &req, httplib::Response &res) {
-        json lines = json::array();
         unsigned long last_id = req.has_param("from") ? stol(req.get_param_value("from")) : 0;
         logger->debug("Get logs from {:d}", last_id);
-        db << "select id, ts, level, section, message from log where id > ? order by id" << last_id >>
-            [&](unsigned long id, int ts, int level, string section, string message) {
-                lines.push_back({
-                    {"id", id},
-                    {"ts", ts},
-                    {"level", level},
-                    {"section", section},
-                    {"message", db.decrypt(message)},
-                });
-            };
         json j = jinit();
-        j["lines"] = lines;
+        j["lines"] = Logger::last(last_id);
         res.set_content(j.dump(), "application/json");
     });
     server.Get("/control/(pause|resume)_([A-Z_]+).json", [&](const httplib::Request &req, httplib::Response &res) {

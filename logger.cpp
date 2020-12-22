@@ -10,6 +10,7 @@ string Logger::dir = "./logs/";
 string Logger::telegramKey = "";
 string Logger::password = "";
 string Logger::telegramChat = "";
+std::shared_ptr<sqlite_sink<std::mutex>> Logger::db_sink;
 
 template <typename Mutex>
 class telegram_sink : public spdlog::sinks::base_sink<Mutex>
@@ -42,7 +43,8 @@ class sqlite_sink : public spdlog::sinks::base_sink<Mutex>
 {
 private:
     mydb db;
-    myst ps;
+    myst pinsert;
+    myst pselect;
 
 protected:
     void sink_it_(const spdlog::details::log_msg &msg) override
@@ -51,8 +53,8 @@ protected:
         spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
         try
         {
-            ps << msg.level << msg.logger_name.data() << db.encrypt(fmt::to_string(formatted));
-            ps++;
+            pinsert << msg.level << msg.logger_name.data() << db.encrypt(fmt::to_string(formatted));
+            pinsert++;
         }
         catch (sqlite::sqlite_exception &e)
         {
@@ -72,14 +74,30 @@ public:
     ~sqlite_sink() noexcept override {}
     sqlite_sink(const string &file, const string &password) noexcept : spdlog::sinks::base_sink<Mutex>(),
                                                                        db(file, password, "create table if not exists log ("
-                                                                                           " id integer primary key autoincrement not null, "
-                                                                                           " ts timestamp default (strftime('%s', 'now')), "
-                                                                                           " level int, "
-                                                                                           " section text, "
-                                                                                           " message text "
-                                                                                           ");"),
-                                                                       ps(db, "insert into log (level, section, message) values (?, ?, ?);")
+                                                                                          " id integer primary key autoincrement not null, "
+                                                                                          " ts timestamp default (strftime('%s', 'now')), "
+                                                                                          " level int, "
+                                                                                          " section text, "
+                                                                                          " message text "
+                                                                                          ");"),
+                                                                       pinsert(db, "insert into log (level, section, message) values (?, ?, ?);"),
+                                                                       pselect(db, "select id, ts, level, section, message from log where id > ? order by id desc limit 1000;")
     {
+    }
+    nlohmann::json last(const unsigned long last_id)
+    {
+        json lines = json::array();
+        pselect << last_id >>
+            [&](unsigned long id, int ts, int level, string section, string message) {
+                lines.push_back({
+                    {"id", id},
+                    {"ts", ts},
+                    {"level", level},
+                    {"section", section},
+                    {"message", db.decrypt(message)},
+                });
+            };
+        return lines;
     }
 };
 
@@ -110,6 +128,7 @@ void Logger::add_sinks()
     sqlite_sink->set_formatter(std::move(formatter));
 
     sinks.push_back(sqlite_sink);
+    db_sink = sqlite_sink;
 
     if (!telegramChat.empty())
     {
@@ -129,6 +148,11 @@ logger_p Logger::get(const char *name)
     std::shared_ptr<spdlog::logger> l = std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
     l->flush_on(spdlog::level::info);
     return l;
+}
+
+nlohmann::json Logger::last(const unsigned long last_id)
+{
+    return db_sink->last(last_id);
 }
 
 logger_p Logger::logger(const char *name)

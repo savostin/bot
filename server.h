@@ -4,7 +4,6 @@
 #include "httplib/httplib.h"
 #include "logger.h"
 #include <thread>
-#include "sqlite.h"
 
 
 class Server
@@ -15,7 +14,6 @@ private:
     logger_p logger;
     thread th;
     unsigned int port;
-    mydb db;
     static void doit(Server *s);
     json jinit();
 
