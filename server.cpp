@@ -1,7 +1,7 @@
 #include "server.h"
 #include "channel.h"
 
-Server::Server() : th()
+Server::Server() : th(), db(fmt::format("{}/log.db", Logger::dir), Logger::password)
 {
     server.set_mount_point("/", "./www");
 
@@ -17,6 +17,7 @@ Server::Server() : th()
         j["items"] = items;
         res.set_content(j.dump(), "application/json");
     });
+
     server.Get("/channels.json", [&](const httplib::Request & /*req*/, httplib::Response &res) {
         json channels = json::array();
         for (map<const ChannelType, Channel *>::iterator i = Channel::channels.begin(); i != Channel::channels.end(); i++)
@@ -31,6 +32,25 @@ Server::Server() : th()
         }
         json j = jinit();
         j["channels"] = channels;
+        res.set_content(j.dump(), "application/json");
+    });
+
+    server.Get("/log.json", [&](const httplib::Request &req, httplib::Response &res) {
+        json lines = json::array();
+        unsigned long last_id = req.has_param("from") ? stol(req.get_param_value("from")) : 0;
+        logger->debug("Get logs from {:d}", last_id);
+        db << "select id, ts, level, section, message from log where id > ? order by id" << last_id >>
+            [&](unsigned long id, int ts, int level, string section, string message) {
+                lines.push_back({
+                    {"id", id},
+                    {"ts", ts},
+                    {"level", level},
+                    {"section", section},
+                    {"message", db.decrypt(message)},
+                });
+            };
+        json j = jinit();
+        j["lines"] = lines;
         res.set_content(j.dump(), "application/json");
     });
     server.Get("/control/(pause|resume)_([A-Z_]+).json", [&](const httplib::Request &req, httplib::Response &res) {
@@ -98,8 +118,6 @@ Server::~Server()
 
 void Server::doit(Server *s)
 {
-    s->logger->debug("Getting ip address...");
-
     s->logger->info("Starting web-server on http://localhost:{:d}/", s->port);
     if (!s->server.listen("127.0.0.1", s->port))
     {

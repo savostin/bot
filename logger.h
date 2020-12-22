@@ -11,7 +11,9 @@ private:
     std::vector<spdlog::sink_ptr> sinks;
     static Logger* l;
     static bool created;
+public:
     static std::string dir;
+    static std::string password;
     static std::string telegramKey;
     static std::string telegramChat;
 public:
@@ -20,8 +22,6 @@ public:
     ~Logger();
     static logger_p logger(const char* name);
     logger_p get(const char* name);
-    static void setDir(const std::string dir);
-    static void setTelegram(const std::string chat, const std::string key = "");
 };
 
 #endif

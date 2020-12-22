@@ -13,6 +13,8 @@ namespace sqlite {
 
 	class sqlcipher_database : public database {
 	public:
+		sqlcipher_database(std::string db): database(db) {
+		}
 		sqlcipher_database(std::string db, const sqlcipher_config &config): database(db, config) {
 			set_key(config.key);
 		}

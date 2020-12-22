@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 	}
 
 	string logs = args["logs"].as<string>("./logs/");
-	Logger::setDir(logs);
+	Logger::dir = logs;
 
 	if (args["proxy_port"] && args["proxy_server"])
 	{
@@ -101,6 +101,7 @@ int main(int argc, char **argv)
 		cout << "Enter BetFair username: ";
 		cin >> username;
 	}
+	Logger::password = username;
 
 	string password = args["password"].as<string>("");
 	while (password.empty())
@@ -116,7 +117,8 @@ int main(int argc, char **argv)
 	if (!t_chat.empty())
 	{
 		string t_key = args["telegram_key"].as<string>("");
-		Logger::setTelegram(t_chat, t_key);
+		Logger::telegramChat = t_chat;
+		Logger::telegramKey = t_key;
 	}
 
 	Server server;

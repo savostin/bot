@@ -5,7 +5,7 @@ release:	CPP_FLAGS       = -Wall -c -I. -O2 -std=c++14 -fpic
 MKDIR_P			= mkdir -p
 
 OPENSSL_DIR		= ./openssl
-LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -L./fmt/ -lssl -lz -lcrypto -lfmt -lspdlog -lpthread -ldl
+LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -L./fmt/ -lssl -lz -lcrypto -lfmt -lspdlog -lpthread -ldl -lsqlite3
 HEADERS			= -I$(OPENSSL_DIR)/include
 
 LD              = g++
@@ -15,7 +15,7 @@ EXE				= bot
 say				= say "Done"
 
 BUILD_DIR	= ./build
-SOURCES		= $(wildcard pugixml/*.cpp) $(wildcard channel/*.cpp) $(wildcard strategy/*.cpp) $(wildcard *.cpp)
+SOURCES		= $(wildcard sqlite/*.cpp) $(wildcard pugixml/*.cpp) $(wildcard channel/*.cpp) $(wildcard strategy/*.cpp) $(wildcard *.cpp)
 OBJECTS		= $(SOURCES:%=$(BUILD_DIR)/%.o)
 
 debug:		clear clean_exe ${OBJECTS} ${EXE} say
