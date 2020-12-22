@@ -21,6 +21,7 @@ public:
     static std::string password;
     static std::string telegramKey;
     static std::string telegramChat;
+    static unsigned int keep_hours;
 
 public:
     Logger();

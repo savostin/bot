@@ -52,6 +52,7 @@ int main(int argc, char **argv)
 		{"version", {"-V", "--version"}, "Print version and exit", 0},
 		{"help", {"-h", "--help"}, "Shows this help message", 0},
 		{"logs", {"-l", "--logs"}, "Location of logs dir [./logs/]", 1},
+		{"keep", {"--keep"}, "Keep logs for X hours [24]", 1},
 		{"username", {"-u", "--user"}, "BetFair username", 1},
 		{"password", {"-p", "--password"}, "BetFair password", 1},
 		{"port", {"--port"}, "Web-interface port", 1},
@@ -89,6 +90,9 @@ int main(int argc, char **argv)
 
 	string logs = args["logs"].as<string>("./logs/");
 	Logger::dir = logs;
+
+	unsigned int keep_hours = args["keep"].as<unsigned int>(24);
+	Logger::keep_hours = keep_hours;
 
 	if (args["proxy_port"] && args["proxy_server"])
 	{

@@ -10,6 +10,7 @@ string Logger::dir = "./logs/";
 string Logger::telegramKey = "";
 string Logger::password = "";
 string Logger::telegramChat = "";
+unsigned int Logger::keep_hours = 24;
 std::shared_ptr<sqlite_sink<std::mutex>> Logger::db_sink;
 
 template <typename Mutex>
@@ -68,6 +69,10 @@ protected:
 
     void flush_() override
     {
+        std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
+        std::chrono::system_clock::time_point tt = t - std::chrono::hours(Logger::keep_hours);
+        db << "delete from log where ts < ?;" << std::chrono::duration_cast<std::chrono::seconds>(tt.time_since_epoch()).count();
+        db << "VACUUM;";
     }
 
 public:
@@ -146,7 +151,7 @@ Logger::~Logger()
 logger_p Logger::get(const char *name)
 {
     std::shared_ptr<spdlog::logger> l = std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
-    l->flush_on(spdlog::level::info);
+    l->flush_on(spdlog::level::warn);
     return l;
 }
 
