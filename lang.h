@@ -46,6 +46,12 @@ struct Language
     L UsageVersion = {
         "Print version and exit",
         "Вывести номер версии и выйти"};
+    L UsageLanguage = {
+        "Language / Язык [ en|ru ]",
+        "Язык / Language [ en|ru ]"};
+    L UsageWrongLang = {
+        "The only en or ru is currently supported",
+        "Поддерживаются только en или ru"};
     L UsageHelp = {
         "Shows this help message",
         "Показать эту помощь"};
@@ -79,6 +85,9 @@ struct Language
     L UsageTelegramChat = {
         "Telegram chat id to notify to",
         "ID чата Telegram для оповещений"};
+    L UsageTelegramNoChat = {
+        "Telegram chat id is not supplied!",
+        "ID чата Telegram для оповещений не указан!"};
     L UsageTelegramKey = {
         "Telegram bot key to notify from",
         "Секретный ключ бота Telegram, от которого слать оповещения"};

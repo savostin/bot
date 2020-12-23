@@ -45,35 +45,56 @@ void signal_handler(int)
 	Events::loop()->notify(E_EXIT);
 }
 
-
 int main(int argc, char **argv)
 {
 	int exit_code = EXIT_SUCCESS;
-	argagg::parser argparser{{
-		{"version", {"-V", "--version"}, _.UsageVersion, 0},
-		{"help", {"-h", "--help"}, _.UsageHelp, 0},
-		{"logs", {"-l", "--logs"}, _.UsageLogs, 1},
-		{"keep", {"--keep"}, _.UsageKeep, 1},
-		{"username", {"-u", "--user"}, _.UsageBetFairUsername, 1},
-		{"password", {"-p", "--password"}, _.UsageBetFairPassword, 1},
-		{"port", {"--port"}, _.UsagePort, 1},
-		{"proxy_server", {"--proxy-server"}, _.UsageProxyServer, 1},
-		{"proxy_port", {"--proxy-port"}, _.UsageProxyPort, 1},
-		{"proxy_username", {"--proxy-username"}, _.UsageProxyUsername, 1},
-		{"proxy_password", {"--proxy-password"}, _.UsageProxyPassword, 1},
-		{"telegram_chat", {"-c", "--chat"}, _.UsageTelegramChat, 1},
-		{"telegram_key", {"-k", "--key"}, _.UsageTelegramKey, 1},
-	}};
-
 	argagg::parser_results args;
-	try
+	argagg::parser argparser;
+	string lang = "";
+	short i = 0;
+	while (i++ < 2) // WTF?! Not more than 2 times?
 	{
-		args = argparser.parse(argc, argv);
-	}
-	catch (const std::exception &e)
-	{
-		cerr << e.what() << '\n';
-		return EXIT_FAILURE;
+		argparser = {{
+			{"lang", {"--lang"}, _.UsageLanguage, 1},
+			{"logs", {"-l", "--logs"}, _.UsageLogs, 1},
+			{"keep", {"--keep"}, _.UsageKeep, 1},
+			{"username", {"-u", "--user"}, _.UsageBetFairUsername, 1},
+			{"password", {"-p", "--password"}, _.UsageBetFairPassword, 1},
+			{"port", {"--port"}, _.UsagePort, 1},
+			{"proxy_server", {"--proxy-server"}, _.UsageProxyServer, 1},
+			{"proxy_port", {"--proxy-port"}, _.UsageProxyPort, 1},
+			{"proxy_username", {"--proxy-username"}, _.UsageProxyUsername, 1},
+			{"proxy_password", {"--proxy-password"}, _.UsageProxyPassword, 1},
+			{"telegram_chat", {"-c", "--chat"}, _.UsageTelegramChat, 1},
+			{"telegram_key", {"-k", "--key"}, _.UsageTelegramKey, 1},
+			{"version", {"-V", "--version"}, _.UsageVersion, 0},
+			{"help", {"-h", "--help"}, _.UsageHelp, 0},
+		}};
+
+		try
+		{
+			args = argparser.parse(argc, argv);
+		}
+		catch (const std::exception &e)
+		{
+			cerr << e.what() << '\n';
+			return EXIT_FAILURE;
+		}
+
+		lang = args["lang"].as<string>("en");
+		if (lang == "en")
+		{
+			Language::current = ENGLISH;
+		}
+		else if (lang == "ru")
+		{
+			Language::current = RUSSIAN;
+		}
+		else
+		{
+			cerr << string(_.UsageWrongLang) << endl;
+			return EXIT_FAILURE;
+		}
 	}
 
 	if (args["help"])
@@ -124,6 +145,10 @@ int main(int argc, char **argv)
 		string t_key = args["telegram_key"].as<string>("");
 		Logger::telegramChat = t_chat;
 		Logger::telegramKey = t_key;
+	}
+	else if (args["telegram_key"])
+	{
+		logger->warn(_.UsageTelegramNoChat);
 	}
 
 	Server server;

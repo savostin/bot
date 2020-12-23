@@ -2,7 +2,7 @@
 #include <fmt/format.h>
 
 
-Lang Language::current = RUSSIAN;
+Lang Language::current = ENGLISH;
 Language Language::l;
 
 
