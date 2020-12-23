@@ -43,7 +43,21 @@ void Channel::doit(const int rate, Channel *ths)
 void Channel::status(ChannelStatus s)
 {
     _status = s;
-    json j = s;
+    string j = "?";
+    switch (s) {
+        case RUNNING:
+            j = _.ChannelStatusRunning;
+            break;
+        case PAUSED:
+            j = _.ChannelStatusPaused;
+            break;
+        case STOPPED:
+            j = _.ChannelStatusStopped;
+            break;
+        case UNDEFINED:
+            j = "?";
+            break;
+    }
     logger->info("{}", j);
 }
 

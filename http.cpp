@@ -56,14 +56,14 @@ string HTTP::Request(const string &url, const string &data, const string &conten
         {
             return res->body;
         }
-        logger->error("{}: Status: {} Error: {}", url, res->status, res.error());
+        logger->error(_.HttpStatusError, url, res->status, res.error());
         cout << res->body << endl;
         lastError = res.error();
     }
     else
     {
-        logger->error("ERROR: {}", error(res.error()));
-        lastError = fmt::format("ERROR {}", error(res.error()));
+        logger->error("{}", error(res.error()));
+        lastError = error(res.error());
         client.stop();
     }
     return "";
@@ -83,7 +83,7 @@ xml_document HTTP::Request(const string &url, xml_document &data)
         xml_parse_result res = doc.load_string(d.c_str());
         if (!res)
         {
-            logger->error("XML: {}", res.description());
+            logger->error(_.HttpXmlError, res.description());
             logger->debug(d);
             lastError = res.description();
         }
@@ -104,7 +104,7 @@ json HTTP::Request(const string &url, json &data)
     }
     catch (...)
     {
-        logger->error("JSON parse error: {}", res);
+        logger->error(_.HttpJsonError, res);
     }
     return json();
 }
@@ -117,40 +117,40 @@ string HTTP::error(httplib::Error code)
         return "";
         break;
     case httplib::Error::Unknown:
-        return "Unknown error";
+        return _.HttpErrorUnknown;
         break;
     case httplib::Error::Connection:
-        return "Unable to connect";
+        return _.HttpErrorConnect;
         break;
     case httplib::Error::BindIPAddress:
-        return "Unable to bind ip address";
+        return _.HttpErrorBind;
         break;
     case httplib::Error::Read:
-        return "Socket read error";
+        return _.HttpErrorSocketRead;
         break;
     case httplib::Error::Write:
-        return "Socket write error";
+        return _.HttpErrorSocketWrite;
         break;
     case httplib::Error::ExceedRedirectCount:
-        return "Exceed Redirect Count";
+        return _.HttpErrorRedirect;
         break;
     case httplib::Error::Canceled:
-        return "Cancelled";
+        return _.HttpErrorCancelled;
         break;
     case httplib::Error::SSLConnection:
-        return "SSL connection failed";
+        return _.HttpErrorSSLFailed;
         break;
     case httplib::Error::SSLLoadingCerts:
-        return "SSL loading certs failed";
+        return _.HttpErrorSSLLoad;
         break;
     case httplib::Error::SSLServerVerification:
-        return "SSL server verification failed";
+        return _.HttpErrorSSLVerification;
         break;
     case httplib::Error::UnsupportedMultipartBoundaryChars:
-        return "Unsupported multipart boundary chars";
+        return _.HttpErrorMultipart;
         break;
     case httplib::Error::Compression:
-        return "Compression failed";
+        return _.HttpErrorCompression;
         break;
     }
     return "WTF";

@@ -1,12 +1,18 @@
 CPP             = g++
 RM              = rm -f
-debug:		CPP_FLAGS       = -Wall -Wextra -c -I. -O0 -std=c++14 -fpic -DDEBUG -g
-release:	CPP_FLAGS       = -Wall -c -I. -O2 -std=c++14 -fpic
-MKDIR_P			= mkdir -p
 
+PACKAGE		= bfbj
+BUILD_DIR	= ./build
+LOCALE_DIR	= ./locale
 OPENSSL_DIR		= ./openssl
 LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -L./fmt/ -lssl -lz -lcrypto -lfmt -lspdlog -lpthread -ldl -lsqlite3
 HEADERS			= -I$(OPENSSL_DIR)/include
+
+CPP_COMMON	= -Wall -c -I. -std=c++14 -fpic
+debug:		CPP_FLAGS       = $(CPP_COMMON) -Wextra -O0 -DDEBUG -g
+release:	CPP_FLAGS       = $(CPP_COMMON) -O2
+MKDIR_P			= mkdir -p
+
 
 LD              = g++
 debug: LD_FLAGS        = -Wall -Wextra -O0
@@ -14,7 +20,6 @@ release: LD_FLAGS        = -Wall -O2
 EXE				= bot
 say				= say "Done"
 
-BUILD_DIR	= ./build
 SOURCES		= $(wildcard sqlite/*.cpp) $(wildcard pugixml/*.cpp) $(wildcard channel/*.cpp) $(wildcard strategy/*.cpp) $(wildcard *.cpp)
 OBJECTS		= $(SOURCES:%=$(BUILD_DIR)/%.o)
 

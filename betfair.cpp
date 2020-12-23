@@ -35,7 +35,7 @@ xml_document BetFair::getSnapshot(const int id)
 
 BetFairAccount::BetFairAccount() : BetFair(), username(""), password(""), available(0), running(true), th()
 {
-    logger = Logger::logger("ACCOUNT");
+    logger = Logger::logger(string(_.LoggerAccount).data());
     logger->set_level(spdlog::level::info);
 }
 
@@ -61,7 +61,7 @@ bool BetFairAccount::login(const string _username, const string _password)
 {
     username = _username;
     password = _password;
-    logger->info("Logging in as '{}'", username);
+    logger->info(_.AccountLogin, username);
     string instance = fmt::format("{}:{}", SOFTWARE, username);
     addHeaders({{"gamexAPIPassword", password},
                 {"gamexAPIAgent", SOFTWARE},
@@ -69,7 +69,7 @@ bool BetFairAccount::login(const string _username, const string _password)
     th = thread{doit, this};
     if (getFunds())
     {
-        logger->warn("Funds: {:.2f} {}", available, currency);
+        logger->warn(_.AccountFunds, available, currency);
         return true;
     }
     return false;
@@ -87,11 +87,11 @@ bool BetFairAccount::getFunds()
             available = stof(root.child_value("availableToBetBalance"));
             return true;
         }
-        logger->error("No account snapshot");
+        logger->error(_.AccountNoSnapshot);
     }
     else if (lastStatus == 401)
     {
-        logger->error("Wrong username/password?");
+        logger->error(_.AccountNoAuth);
     }
     return false;
 }
@@ -106,11 +106,10 @@ Funds BetFairAccount::funds()
 
 bool BetFairAccount::placeBet(struct Bet &bet)
 {
-    system("say \"attention please\"");
-
     string sideName = bet.side == BACK ? "BACK" : "LAY";
+    string sideNameInt = bet.side == BACK ? _.BACK : _.LAY;
     bet.status = BetPlaced;
-    logger->warn("Placing {} bet on '{}': {:.2f} {} @ {:.2f}...", sideName, bet.selection.name, bet.amount, currency, bet.price);
+    logger->warn(_.AccountPlacingBet, sideNameInt, bet.selection.name, bet.amount, currency, bet.price);
     xml_document send;
     send.load_string(fmt::format("<postBetOrder xmlns=\"urn:betfair:games:api:v1\" marketId=\"{:d}\" round=\"{:d}\" currency=\"{}\"><betPlace><bidType>{}</bidType><price>{:.2f}</price><size>{:.2f}</size><selectionId>{:d}</selectionId></betPlace></postBetOrder>",
                                  bet.market.id,
@@ -127,14 +126,14 @@ bool BetFairAccount::placeBet(struct Bet &bet)
     {
         bet.status = string(betResult.child_value("resultCode")) == string("OK") ? BetMatched : BetError;
         bet.id = atol(betResult.child_value("betId"));
-        logger->warn("Bet result: {}, id {}", betResult.child_value("resultCode"), betResult.child_value("betId"));
+        logger->warn(_.AccountBetResult, betResult.child_value("resultCode"), betResult.child_value("betId"));
         getFunds();
-        logger->warn("Funds: {:.2f} {}", available, currency);
+        logger->warn(_.AccountFunds, available, currency);
         return true;
     }
     else
     {
-        logger->error("Xml error");
+        logger->error(_.ChannelNoXml);
     }
     bet.status = BetError;
     return false;
@@ -193,7 +192,7 @@ vector<Bet> BetFairAccount::getBetsHistory(const string &status)
     }
     else
     {
-        logger->error("Non-xml response");
+        logger->error(_.ChannelNoXml);
     }
     return bets;
 }
@@ -258,7 +257,7 @@ vector<Bet> BetFairAccount::getBets(const unsigned long channel, const string &s
     }
     else
     {
-        logger->error("Non-xml response");
+        logger->error(_.ChannelNoXml);
     }
     return bets;
 }
@@ -320,7 +319,7 @@ vector<Statement> BetFairAccount::getStatement(const ChannelType channel, const 
     }
     else
     {
-        logger->error("Non-xml response");
+        logger->error(_.ChannelNoXml);
     }
     return statement;
 }

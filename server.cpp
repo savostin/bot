@@ -82,7 +82,7 @@ Server::Server() : th()
         res.set_content(j.dump(), "application/json");
     });
 
-    logger = Logger::logger("SERVER");
+    logger = Logger::logger(string(_.LoggerServer).data());
     logger->set_level(spdlog::level::debug);
 }
 
@@ -96,7 +96,7 @@ void Server::stop()
 {
     if (port > 0)
     {
-        logger->info("Stopping...");
+        logger->info(_.ServerStopping);
         server.stop();
         th.join();
     }
@@ -108,10 +108,10 @@ Server::~Server()
 
 void Server::doit(Server *s)
 {
-    s->logger->info("Starting web-server on http://localhost:{:d}/", s->port);
+    s->logger->info(_.ServerStarting, s->port);
     if (!s->server.listen("127.0.0.1", s->port))
     {
-        s->logger->error("Unable to bind http server on port {:d} - port is busy?", s->port);
+        s->logger->error(_.ServerStartingError, s->port);
     }
 }
 

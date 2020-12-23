@@ -44,6 +44,18 @@ using json = nlohmann::basic_json<std::map, std::vector, std::string, bool, std:
 
 #define SOFTWARE "Individual.com.bfbj.1.0"
 
+enum Lang
+{
+    ENGLISH = 0,
+    RUSSIAN
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(Lang,
+                             {
+                                 {ENGLISH, "en"},
+                                 {RUSSIAN, "ru"},
+                             })
+
 enum StrategyType
 {
     ST_BJ_LF,
@@ -58,26 +70,20 @@ enum ChannelType
 
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ChannelType, {
-                                                {UNKNOWN, "ALL"},
-                                                {BLACK_JACK, "BLACK_JACK"},
-                                                {BLACK_JACK_TURBO, "BLACK_JACK_TURBO"},
-                                            })
+NLOHMANN_JSON_SERIALIZE_ENUM(ChannelType,
+                             {
+                                 {UNKNOWN, "ALL"},
+                                 {BLACK_JACK, "BLACK_JACK"},
+                                 {BLACK_JACK_TURBO, "BLACK_JACK_TURBO"},
+                             })
 
-enum ChannelStatus 
+enum ChannelStatus
 {
     UNDEFINED = 0,
     STOPPED,
     RUNNING,
     PAUSED
 };
-
-NLOHMANN_JSON_SERIALIZE_ENUM(ChannelStatus, {
-                                                {UNDEFINED, "UNDEFINED"},
-                                                {STOPPED, "STOPPED"},
-                                                {RUNNING, "RUNNING"},
-                                                {PAUSED, "PAUSED"},
-                                            })
 
 struct Player
 {
@@ -217,8 +223,9 @@ struct Event
     long long int data;
 };
 
-
+#include "lang.h"
 #include "events.h"
 
+#define _ Language::l
 
 #endif

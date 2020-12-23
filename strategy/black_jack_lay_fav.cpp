@@ -6,9 +6,9 @@
 
 StBlackJackLayFav::StBlackJackLayFav(bool turbo) : BlackJack(turbo), placedGameId(0), checkedGameId(0), lastGameId(0)
 {
-    logger = Logger::logger("BJ-LF");
+    logger = Logger::logger(string(_.LoggerBfBj).data());
     logger->set_level(spdlog::level::debug);
-    logger->debug("Starting strategy: Black Jack Lay Favorite v.{}.{}", V_MAJOR, V_MINOR);
+    logger->debug(_.StrategyStarting, "Black Jack Lay Favorite", V_MAJOR, V_MINOR);
 }
 
 StBlackJackLayFav::~StBlackJackLayFav()
@@ -29,7 +29,10 @@ void StBlackJackLayFav::run(struct Data data)
             {
                 vector<Statement> stmt = BetFair::account()->getStatement(BLACK_JACK_TURBO, 3);
                 float pl = BetFair::account()->getMarketPL(placedMarketId);
-                logger->warn("Last game p/l: {:+.2f}", pl);
+                logger->warn(_.StrategyLastPL, pl);
+                BetFair::account()->getFunds();
+                Funds f = BetFair::account()->funds();
+                logger->warn(_.AccountFunds, f.available, f.currency);
                 placedGameId = 0;
                 placedMarketId = 0;
             }
@@ -39,30 +42,29 @@ void StBlackJackLayFav::run(struct Data data)
                 int favIndex = Channel::favIndex(data.markets[mi].selections, 4);
                 if (favIndex >= 0)
                 {
-                    logger->debug("---------------------- {:d}", data.id);
+                    logger->debug(_.StrategyChecking, data.id);
                     Player player = data.players[favIndex];
                     Selection selection = data.markets[mi].selections[favIndex];
-                    logger->debug("Favorite: {}", player.name);
-                    logger->debug("Price: {:.2f}", selection.layPrice.price);
+                    logger->debug(_.StrategyFavorite, player.name);
+                    logger->debug(_.StrategyPrice, selection.layPrice.price);
                     if (selection.layPrice.price > 1 && selection.layPrice.price < 4)
                     {
                         if (player.cards.size() > 0)
                         {
                             if (player.cards.size() >= 2)
                             {
-                                logger->debug("Cards: {} {}", Card::sym(player.cards[0]), Card::sym(player.cards[1]));
+                                logger->debug(_.StrategyCards, Card::sym(player.cards[0]), Card::sym(player.cards[1]));
                             }
                             else
                             {
-                                logger->debug("Cards: [{}]", player.cards[0]);
+                                logger->debug(_.StrategyCards, player.cards[0]);
                             }
                             if (Card::rank(player.cards[0]) != "A" && (player.cards.size() == 1 || Card::rank(player.cards[1]) != "A"))
                             {
                                 unsigned int points = BlackJack::points(player.cards);
-                                logger->debug("Points: {:d}", points);
+                                logger->debug(_.StrategyPoints, points);
                                 if (points >= 12 && points <= 16)
                                 {
-                                    logger->info("{:d}: LAY {} - {:.2f} EUR @ {:.2f}", data.id, selection.name, 4 / (selection.layPrice.price - 1), selection.layPrice.price);
                                     placedGameId = data.id;
                                     placedMarketId = data.markets[mi].id;
                                     Bet bet;
@@ -72,6 +74,7 @@ void StBlackJackLayFav::run(struct Data data)
                                     bet.selection = selection;
                                     bet.price = selection.layPrice.price;
                                     bet.amount = 4 / (bet.price - 1);
+                                    logger->info(_.StrategyBet, data.id, selection.name, bet.amount, BetFair::account()->currency, selection.layPrice.price);
                                     BetFair::account()->placeBet(bet);
                                     return;
                                 }
@@ -85,7 +88,7 @@ void StBlackJackLayFav::run(struct Data data)
         {
             if (lastGameId != 0)
             {
-                logger->info("Game {:d} skipped", lastGameId);
+                logger->info(_.StrategySkipped, lastGameId);
             }
             lastGameId = data.id;
         }

@@ -88,30 +88,30 @@ bool BlackJack::parse(xml_document &doc)
                     }
                     else
                     {
-                        logger->error("No selections");
+                        logger->error(_.ChannelNoSelection);
                     }
                     data.markets.push_back(mainMarket);
                 }
                 else
                 {
-                    logger->error("No market");
+                    logger->error(_.ChannelNoMarket);
                 }
                 run(data);
                 return true;
             }
             else
             {
-                logger->error("No xml game data");
+                logger->error(_.ChannelNoXml);
             }
         }
         else
         {
-            logger->error("No xml game");
+            logger->error(_.ChannelNoXml);
         }
     }
     else
     {
-        logger->error("No xml root");
+        logger->error(_.ChannelNoXmlRoot);
     }
     return false;
 }

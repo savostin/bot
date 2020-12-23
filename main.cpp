@@ -45,23 +45,24 @@ void signal_handler(int)
 	Events::loop()->notify(E_EXIT);
 }
 
+
 int main(int argc, char **argv)
 {
 	int exit_code = EXIT_SUCCESS;
 	argagg::parser argparser{{
-		{"version", {"-V", "--version"}, "Print version and exit", 0},
-		{"help", {"-h", "--help"}, "Shows this help message", 0},
-		{"logs", {"-l", "--logs"}, "Location of logs dir [./logs/]", 1},
-		{"keep", {"--keep"}, "Keep logs for X hours [24]", 1},
-		{"username", {"-u", "--user"}, "BetFair username", 1},
-		{"password", {"-p", "--password"}, "BetFair password", 1},
-		{"port", {"--port"}, "Web-interface port", 1},
-		{"proxy_server", {"--proxy-server"}, "Proxy server", 1},
-		{"proxy_port", {"--proxy-port"}, "Proxy port", 1},
-		{"proxy_username", {"--proxy-username"}, "Proxy username", 1},
-		{"proxy_password", {"--proxy-password"}, "Proxy password", 1},
-		{"telegram_chat", {"-c", "--chat"}, "Telegram chat id", 1},
-		{"telegram_key", {"-k", "--key"}, "Telegram bot key", 1},
+		{"version", {"-V", "--version"}, _.UsageVersion, 0},
+		{"help", {"-h", "--help"}, _.UsageHelp, 0},
+		{"logs", {"-l", "--logs"}, _.UsageLogs, 1},
+		{"keep", {"--keep"}, _.UsageKeep, 1},
+		{"username", {"-u", "--user"}, _.UsageBetFairUsername, 1},
+		{"password", {"-p", "--password"}, _.UsageBetFairPassword, 1},
+		{"port", {"--port"}, _.UsagePort, 1},
+		{"proxy_server", {"--proxy-server"}, _.UsageProxyServer, 1},
+		{"proxy_port", {"--proxy-port"}, _.UsageProxyPort, 1},
+		{"proxy_username", {"--proxy-username"}, _.UsageProxyUsername, 1},
+		{"proxy_password", {"--proxy-password"}, _.UsageProxyPassword, 1},
+		{"telegram_chat", {"-c", "--chat"}, _.UsageTelegramChat, 1},
+		{"telegram_key", {"-k", "--key"}, _.UsageTelegramKey, 1},
 	}};
 
 	argagg::parser_results args;
@@ -77,7 +78,7 @@ int main(int argc, char **argv)
 
 	if (args["help"])
 	{
-		cerr << fmt::format("Usage: {} [options]", argv[0]) << endl
+		cerr << fmt::format((string)_.Usage, argv[0]) << endl
 			 << argparser;
 		return EXIT_SUCCESS;
 	}
@@ -102,7 +103,7 @@ int main(int argc, char **argv)
 	string username = args["username"].as<string>("");
 	while (username.empty())
 	{
-		cout << "Enter BetFair username: ";
+		cout << (string)_.UsageEnterBetFairUsernane;
 		cin >> username;
 	}
 	Logger::password = username;
@@ -110,7 +111,7 @@ int main(int argc, char **argv)
 	string password = args["password"].as<string>("");
 	while (password.empty())
 	{
-		cout << "Enter BetFair password: ";
+		cout << (string)_.UsageEnterBetFairPassword;
 		setStdinEcho(false);
 		cin >> password;
 		setStdinEcho(true);
@@ -133,13 +134,13 @@ int main(int argc, char **argv)
 	}
 
 	signal(SIGINT, signal_handler);
-	logger = Logger::logger("APP");
+	logger = Logger::logger(string(_.LoggerApp).data());
 	logger->set_level(spdlog::level::info);
-	logger->info("Welcome to {} v.{}.{}.{}!", VERSION_NAME, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+	logger->info(_.Welcome, VERSION_NAME, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 	logger->info("{}", OPENSSL_VERSION_TEXT);
 	if (!t_chat.empty() && !args["telegram_key"])
 	{
-		logger->warn("Telegram key is empty! Your Telegram messages will be sent through a proxy.");
+		logger->warn(_.TelegramWarning);
 	}
 
 	try
@@ -157,7 +158,7 @@ int main(int argc, char **argv)
 				switch (e.type)
 				{
 				case E_EXIT:
-					logger->info("Stopping...");
+					logger->info(_.Stopping);
 					is_running = false;
 					break;
 				case E_PAUSE:
@@ -177,7 +178,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			logger->error("Login failed");
+			logger->error(_.LoginFailed);
 		}
 	}
 	catch (const std::bad_alloc &c)
@@ -195,7 +196,7 @@ int main(int argc, char **argv)
 		exit_code = EXIT_FAILURE;
 	}
 	server.stop();
-	logger->info("Bye!");
+	logger->info(_.Bye);
 	delete BetFair::account();
 
 	return exit_code;

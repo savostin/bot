@@ -59,7 +59,7 @@ protected:
         }
         catch (sqlite::sqlite_exception &e)
         {
-            cerr << e.get_code() << ": " << e.what() << " during "
+            cerr << e.get_code() << ": " << e.what() << ", "
                  << e.get_sql() << endl;
         }
         catch (...)
@@ -115,7 +115,7 @@ Logger::Logger()
 void Logger::add_sinks()
 {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    console_sink->set_pattern("%T %L%^[%n] %v%$");
+    console_sink->set_pattern("%T %L%^%n → %v%$");
     console_sink->set_level(spdlog::level::debug);
     sinks.push_back(console_sink);
 
