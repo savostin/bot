@@ -38,8 +38,8 @@ struct Language
         "ACCOUNT",
         "СЧЁТ"};
     L LoggerBfBj = {
-        "BJ.LF",
-        "BJ.LF"};
+        "📍",
+        "📍"};
     L Usage = {
         "Usage: {} [options]",
         "Запуск: {} [параметры]"};
@@ -83,14 +83,14 @@ struct Language
         "Telegram bot key to notify from",
         "Секретный ключ бота Telegram, от которого слать оповещения"};
     L UsageEnterBetFairUsernane = {
-        "Enter BetFair username: ",
-        "Введите имя пользователя BetFair: "};
+        "👤 Enter BetFair username: ",
+        "👤 Введите имя пользователя BetFair: "};
     L UsageEnterBetFairPassword = {
-        "Enter BetFair password: ",
-        "Введите пароль аккаунта BetFair: "};
+        "Enter BetFair password: 🔑",
+        "Введите пароль аккаунта BetFair: 🔑"};
     L Welcome = {
-        "Welcome to {} v.{}.{}.{}!",
-        "Добро пожаловать в {} v.{}.{}.{}!"};
+        "✨ Welcome to {} v.{}.{}.{}!",
+        "✨ Добро пожаловать в {} v.{}.{}.{}!"};
     L TelegramWarning = {
         "Telegram key is empty! Your Telegram messages will be sent through a proxy.",
         "Секретный ключ Telegram не указан! Ваши сообщения будут отправляться через прокси."};
@@ -101,8 +101,8 @@ struct Language
         "Login failed",
         "Вход неудачный"};
     L Bye = {
-        "Bye!",
-        "До свидания!"};
+        "Bye! 👋",
+        "До свидания! 👋"};
     L BACK = {
         "BACK",
         "ЗА"};
@@ -113,8 +113,8 @@ struct Language
         "Starting strategy: {} v.{}.{}",
         "Запускается стратегия: {} v.{}.{}"};
     L StrategyLastPL = {
-        "Last game p/l: {:+.2f}",
-        "П/У последней игры: {:+.2f}"};
+        "🏆 Last game p/l: {:+.2f}",
+        "🏆 П/У последней игры: {:+.2f}"};
     L StrategyFavorite = {
         "Favorite: {}",
         "Фаворит: {}"};
@@ -134,8 +134,8 @@ struct Language
         "Game {:d} skipped",
         "Игра {:d} пропущена"};
     L StrategyChecking = {
-        "Checking game {:d} ------------------",
-        "Проверяем игру {:d} ------------------"};
+        "------------------ Checking game {:d}",
+        "------------------ Проверяем игру {:d}"};
     L ChannelNoSelection = {
         "No selections!",
         "Нет исходов!"};
@@ -149,20 +149,20 @@ struct Language
         "No xml root",
         "Нет корня xml"};
     L ChannelStatusRunning = {
-        "RUNNING",
-        "ЗАПУЩЕН"};
+        "▶️ RUNNING",
+        "▶️ ЗАПУЩЕН"};
     L ChannelStatusPaused = {
-        "PAUSED",
-        "ПРИОСТАНОВЛЕН"};
+        "⏸️ PAUSED",
+        "⏸️ ПРИОСТАНОВЛЕН"};
     L ChannelStatusStopped = {
-        "STOPPED",
-        "ОСТАНОВЛЕН"};
+        "⏹️ STOPPED",
+        "⏹️ ОСТАНОВЛЕН"};
     L AccountLogin = {
-        "Logging in as '{}'",
-        "Авторизуемся как '{}'"};
+        "Logging in as 👤{}",
+        "Авторизуемся как 👤{}"};
     L AccountFunds = {
-        "Funds: {:.2f} {}",
-        "Доступно: {:.2f} {}"};
+        "💰 Funds: {:.2f} {}",
+        "💰 Доступно: {:.2f} {}"};
     L AccountNoSnapshot = {
         "No account snapshot",
         "Нет информации об аккаунте"};
@@ -170,11 +170,11 @@ struct Language
         "Wrong username/password?",
         "Неверный логин/пароль?"};
     L AccountPlacingBet = {
-        "Placing {} bet on '{}': {:.2f} {} @ {:.2f}...",
-        "Отправляем ставку {} на '{}': {:.2f} {} @ {:.2f}..."};
+        "🔆 Placing {} bet on '{}': {:.2f} {} @ {:.2f}...",
+        "🔆 Отправляем ставку {} на '{}': {:.2f} {} @ {:.2f}..."};
     L AccountBetResult = {
-        "Bet result: {}, id {}",
-        "Результат ставки: {}, id {}"};
+        "🔵 Bet result: {}, id {}",
+        "🔵 Результат ставки: {}, id {}"};
     L HttpStatusError = {
         "{}: Status: {} Error: {}",
         "{}: Статус: {} Ошибка: {}"};
@@ -224,8 +224,8 @@ struct Language
         "Stopping...",
         "Останавливаем..."};
     L ServerStarting = {
-        "Starting web-server on http://localhost:{:d}/",
-        "Запускается web-сервер на http://localhost:{:d}/"};
+        "🌎 Starting web-server on http://localhost:{:d}/",
+        "🌎 Запускается web-сервер на http://localhost:{:d}/"};
     L ServerStartingError = {
         "Unable to bind http server on port {:d} - port is busy?",
         "Невозможно открыть порт {:d} для web-сервера - порт занят?"};
