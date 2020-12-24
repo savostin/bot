@@ -85,6 +85,14 @@ enum ChannelStatus
     PAUSED
 };
 
+NLOHMANN_JSON_SERIALIZE_ENUM(ChannelStatus,
+                             {
+                                 {UNDEFINED, nullptr},
+                                 {STOPPED, "STOPPED"},
+                                 {RUNNING, "RUNNING"},
+                                 {PAUSED, "PAUSED"},
+                             })
+
 struct Player
 {
     string name;

@@ -24,6 +24,7 @@ public:
     void finish();
     virtual bool parse(xml_document &str) = 0;
     virtual void run(struct Data data) = 0;
+    virtual const string runningStrategy() const = 0;
 
     static Channel *create(const StrategyType type);
     static int favIndex(vector<Selection> &selections, const int max = 100);

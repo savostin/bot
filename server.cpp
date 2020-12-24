@@ -28,6 +28,7 @@ Server::Server() : th()
                 {"id", (int)i->first},
                 {"name", Channel::getName(i->first)},
                 {"description", Channel::getName(i->first, false)},
+                {"strategy", i->second->runningStrategy()},
                 {"status", c->status()},
             });
         }
@@ -119,6 +120,13 @@ json Server::jinit()
 {
     std::time_t t = std::time(nullptr);
     json j = {
-        {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))}};
+        {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(t))},
+        {
+            "software",
+            {
+                {"name", VERSION_NAME},
+                {"version", fmt::format("{}.{}.{}", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)},
+            },
+        }};
     return j;
 }

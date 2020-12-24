@@ -48,9 +48,8 @@ void signal_handler(int)
 int main(int argc, char **argv)
 {
 	int exit_code = EXIT_SUCCESS;
-	argagg::parser_results args;
 	argagg::parser argparser;
-	string lang = "";
+	argagg::parser_results args;
 	short i = 0;
 	while (i++ < 2) // WTF?! Not more than 2 times?
 	{
@@ -81,7 +80,7 @@ int main(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 
-		lang = args["lang"].as<string>("en");
+		string lang = args["lang"].as<string>("en");
 		if (lang == "en")
 		{
 			Language::current = ENGLISH;

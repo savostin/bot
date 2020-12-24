@@ -57,7 +57,9 @@ string HTTP::Request(const string &url, const string &data, const string &conten
             return res->body;
         }
         logger->error(_.HttpStatusError, url, res->status, res.error());
+#ifdef DEBUG        
         cout << res->body << endl;
+#endif
         lastError = res.error();
     }
     else
@@ -93,7 +95,7 @@ xml_document HTTP::Request(const string &url, xml_document &data)
 
 json HTTP::Request(const string &url, json &data)
 {
-    string res = Request(url, data.empty() ? "" : data.dump(), "application/json");
+    string res = Request(url, data.empty() ? "" : data.dump(), "application/json; charset=UTF-8");
     try
     {
         return json::parse(res.c_str());

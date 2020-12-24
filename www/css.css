@@ -1,0 +1,214 @@
+/* merriweather-regular - latin_cyrillic */
+
+@font-face {
+    font-family: 'Merriweather';
+    font-style: normal;
+    font-weight: 400;
+    src: url('./f/merriweather-v22-latin_cyrillic-regular.eot');
+    /* IE9 Compat Modes */
+    src: local(''), url('./f/merriweather-v22-latin_cyrillic-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('./f/merriweather-v22-latin_cyrillic-regular.woff2') format('woff2'), /* Super Modern Browsers */
+    url('./f/merriweather-v22-latin_cyrillic-regular.woff') format('woff'), /* Modern Browsers */
+    url('./f/merriweather-v22-latin_cyrillic-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+    url('./f/merriweather-v22-latin_cyrillic-regular.svg#Merriweather') format('svg');
+    /* Legacy iOS */
+}
+
+
+/* merriweather-italic - latin_cyrillic */
+
+@font-face {
+    font-family: 'Merriweather';
+    font-style: italic;
+    font-weight: 400;
+    src: url('./f/merriweather-v22-latin_cyrillic-italic.eot');
+    /* IE9 Compat Modes */
+    src: local(''), url('./f/merriweather-v22-latin_cyrillic-italic.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('./f/merriweather-v22-latin_cyrillic-italic.woff2') format('woff2'), /* Super Modern Browsers */
+    url('./f/merriweather-v22-latin_cyrillic-italic.woff') format('woff'), /* Modern Browsers */
+    url('./f/merriweather-v22-latin_cyrillic-italic.ttf') format('truetype'), /* Safari, Android, iOS */
+    url('./f/merriweather-v22-latin_cyrillic-italic.svg#Merriweather') format('svg');
+    /* Legacy iOS */
+}
+
+
+/* merriweather-900 - latin_cyrillic */
+
+@font-face {
+    font-family: 'Merriweather';
+    font-style: normal;
+    font-weight: 900;
+    src: url('./f/merriweather-v22-latin_cyrillic-900.eot');
+    /* IE9 Compat Modes */
+    src: local(''), url('./f/merriweather-v22-latin_cyrillic-900.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('./f/merriweather-v22-latin_cyrillic-900.woff2') format('woff2'), /* Super Modern Browsers */
+    url('./f/merriweather-v22-latin_cyrillic-900.woff') format('woff'), /* Modern Browsers */
+    url('./f/merriweather-v22-latin_cyrillic-900.ttf') format('truetype'), /* Safari, Android, iOS */
+    url('./f/merriweather-v22-latin_cyrillic-900.svg#Merriweather') format('svg');
+    /* Legacy iOS */
+}
+
+
+/* merriweather-900italic - latin_cyrillic */
+
+@font-face {
+    font-family: 'Merriweather';
+    font-style: italic;
+    font-weight: 900;
+    src: url('./f/merriweather-v22-latin_cyrillic-900italic.eot');
+    /* IE9 Compat Modes */
+    src: local(''), url('./f/merriweather-v22-latin_cyrillic-900italic.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('./f/merriweather-v22-latin_cyrillic-900italic.woff2') format('woff2'), /* Super Modern Browsers */
+    url('./f/merriweather-v22-latin_cyrillic-900italic.woff') format('woff'), /* Modern Browsers */
+    url('./f/merriweather-v22-latin_cyrillic-900italic.ttf') format('truetype'), /* Safari, Android, iOS */
+    url('./f/merriweather-v22-latin_cyrillic-900italic.svg#Merriweather') format('svg');
+    /* Legacy iOS */
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+body,
+html {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    background: linear-gradient(0deg, #bfdcec 0%, #e2ebf0 100%);
+    font-family: Merriweather;
+    display: flex;
+    flex-direction: row;
+}
+
+#left,
+#right {
+    display: flex;
+    flex-direction: column;
+}
+
+#right {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    padding: .5em;
+    max-height: 100%;
+    overflow: auto;
+}
+
+#left {
+    flex: 1;
+}
+
+#channels {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: rgb(189, 215, 223);
+    position: relative;
+    z-index: 2;
+    margin-top: -0.1em;
+    padding: 0.5em;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid rgb(54, 57, 63);
+    border-right: 1px solid rgb(54, 57, 63);
+    border-bottom: 1px solid rgb(54, 57, 63);
+    border-radius: 0 0.5em 0.5em 0;
+    font-weight: 900;
+    margin-top: 1em;
+}
+
+#channels li {
+    cursor: pointer;
+    display: inline-block;
+}
+
+#channels li.active {
+    background: #FFF;
+    margin: 1em;
+}
+
+.strategy {
+    font-size: 0.8em;
+    font-weight: normal;
+}
+
+#log {
+    margin: 0;
+    padding: 1em;
+    list-style: none;
+    background: #FFF;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    font-size: 0.8em;
+}
+
+#log li {
+    padding: 0.2em;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+#log .ts {
+    font-weight: normal;
+    width: 5em;
+    color: #999;
+}
+
+#log .message {
+    flex: 1;
+}
+
+#log li.l_1 {
+    color: #999;
+}
+
+#log li.l_2 {
+    font-weight: bold;
+}
+
+#log li.l_3 {
+    font-weight: bold;
+    background-color: rgb(237, 255, 154);
+}
+
+#log li.l_4 {
+    font-weight: bold;
+    background-color: rgb(255, 152, 152);
+}
+
+#logo {
+    background: rgb(34, 193, 195);
+    background: -moz-linear-gradient(180deg, rgba(34, 193, 195, 1) 0%, rgba(253, 187, 45, 1) 100%);
+    background: -webkit-linear-gradient(180deg, rgba(34, 193, 195, 1) 0%, rgba(253, 187, 45, 1) 100%);
+    background: linear-gradient(180deg, rgba(34, 193, 195, 1) 0%, rgba(253, 187, 45, 1) 100%);
+    filter: progid: DXImageTransform.Microsoft.gradient(startColorstr="#22c1c3", endColorstr="#fdbb2d", GradientType=1);
+    padding: 0.5em 1em;
+    border-left: 1px solid rgb(54, 57, 63);
+    border-right: 1px solid rgb(54, 57, 63);
+    border-bottom: 1px solid rgb(54, 57, 63);
+    border-radius: 0 0 0.5em 0.5em;
+    box-shadow: inset -1px -1px 3px #FFF;
+    font-weight: 900;
+    font-size: 1.2em;
+    color: rgb(24, 65, 66);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-shadow: 1px 1px 1px rgb(172, 220, 221);
+    position: relative;
+    z-index: 4;
+}
+
+.version {
+    font-size: 0.6em;
+    opacity: 0.4;
+    text-align: right;
+}

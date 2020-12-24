@@ -19,6 +19,7 @@ public:
     StBlackJackLayFav(bool turbo);
     ~StBlackJackLayFav();
     void run(struct Data data);
+    const string runningStrategy() const;
 };
 
 #endif
