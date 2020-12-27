@@ -6,11 +6,11 @@ map<const ChannelType, Channel *> Channel::channels;
 condition_variable cv;
 mutex m;
 
-Channel::Channel(const ChannelType type) : BetFair(), th(), _status(UNDEFINED), id(type)
+Channel::Channel(const ChannelType type) : BetFair(), th(), _status(STOPPED), id(type)
 {
-    logger = Logger::logger(Channel::getName(type).data());
+    logger = Logger::logger(name().data());
     logger->set_level(spdlog::level::info);
-    logger->debug("Create new channel: '{}'", Channel::getName(type).data());
+    logger->debug("Create new channel: '{}'", name().data());
     th = thread{doit, 5, this};
 }
 
@@ -58,7 +58,7 @@ void Channel::status(ChannelStatus s)
             j = "?";
             break;
     }
-    logger->info("{}", j);
+    logger->info("{}: {}", runningStrategy(), j);
 }
 
 ChannelStatus Channel::status()
@@ -66,32 +66,12 @@ ChannelStatus Channel::status()
     return _status;
 }
 
-string Channel::getName(ChannelType type, bool u)
+string Channel::name()
 {
-    switch (type)
-    {
-    case BLACK_JACK_TURBO:
-        return u ? "BLACK_JACK_TURBO" : "BLACK JACK TURBO";
-    case BLACK_JACK:
-        return u ? "BLACK_JACK" : "BLACK JACK";
-    case UNKNOWN:
-        return "CHANNEL";
-    }
-    return "";
+    json j(id);
+    return j;
 }
 
-string Channel::getNameSimple(ChannelType type)
-{
-    switch (type)
-    {
-    case BLACK_JACK_TURBO:
-    case BLACK_JACK:
-        return "BLACKJACK";
-    case UNKNOWN:
-        return "";
-    }
-    return "";
-}
 
 int Channel::favIndex(vector<Selection> &selections, const int max)
 {
@@ -178,3 +158,4 @@ void Channel::finish(const ChannelType t)
         channels.erase(t);
     }
 }
+

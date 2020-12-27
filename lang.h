@@ -67,6 +67,9 @@ struct Language
     L UsageBetFairPassword = {
         "BetFair password",
         "Пароль аккаунта BetFair"};
+    L UsageEncrypt = {
+        "Encryption password",
+        "Пароль шифрования"};
     L UsagePort = {
         "Web-interface port",
         "Порт web-интерфейса"};
@@ -91,6 +94,9 @@ struct Language
     L UsageTelegramKey = {
         "Telegram bot key to notify from",
         "Секретный ключ бота Telegram, от которого слать оповещения"};
+    L UsageEnterCrypt = {
+        "🔐 Enter data encryption password: ",
+        "🔐 Введите пароль шифрования данных: "};
     L UsageEnterBetFairUsernane = {
         "👤 Enter BetFair username: ",
         "👤 Введите имя пользователя BetFair: "};

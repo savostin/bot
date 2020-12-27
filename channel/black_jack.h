@@ -12,6 +12,7 @@ public:
     ~BlackJack();
     virtual bool parse(xml_document &doc);
     static unsigned int points(vector<int> &cards);
+
 };
 
 #endif

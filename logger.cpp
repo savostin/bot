@@ -2,16 +2,14 @@
 #include <regex>
 
 #include "telegram.h"
-#include "sqlite.h"
+#include "crypt.h"
+#include "db.h"
+#include "md5.h"
 
-Logger *Logger::l = 0;
-bool Logger::created = false;
-string Logger::dir = "./logs/";
 string Logger::telegramKey = "";
-string Logger::password = "";
 string Logger::telegramChat = "";
 unsigned int Logger::keep_hours = 24;
-std::shared_ptr<sqlite_sink<std::mutex>> Logger::db_sink;
+std::vector<spdlog::sink_ptr> Logger::sinks;
 
 template <typename Mutex>
 class telegram_sink : public spdlog::sinks::base_sink<Mutex>
@@ -43,9 +41,9 @@ template <typename Mutex>
 class sqlite_sink : public spdlog::sinks::base_sink<Mutex>
 {
 private:
-    mydb db;
-    myst pinsert;
-    myst pselect;
+    sqlite::database_binder tmp;
+    sqlite::database_binder pinsert;
+    sqlite::database_binder pselect;
 
 protected:
     void sink_it_(const spdlog::details::log_msg &msg) override
@@ -54,7 +52,8 @@ protected:
         spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
         try
         {
-            pinsert << msg.level << msg.logger_name.data() << db.encrypt(fmt::to_string(formatted));
+            pinsert << msg.level << msg.logger_name.data()
+                    << Crypt::crypt->encrypt(fmt::to_string(formatted));
             pinsert++;
         }
         catch (sqlite::sqlite_exception &e)
@@ -69,26 +68,40 @@ protected:
 
     void flush_() override
     {
-        std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
-        std::chrono::system_clock::time_point tt = t - std::chrono::hours(Logger::keep_hours);
-        db << "delete from log where ts < ?;" << std::chrono::duration_cast<std::chrono::seconds>(tt.time_since_epoch()).count();
-        db << "VACUUM;";
+//        std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
+//        std::chrono::system_clock::time_point tt = t - std::chrono::hours(Logger::keep_hours);
+//        DB::o() << "delete from log where ts < ?;" << std::chrono::duration_cast<std::chrono::seconds>(tt.time_since_epoch()).count();
+//        DB::o() << "VACUUM;";
     }
 
 public:
     ~sqlite_sink() noexcept override {}
-    sqlite_sink(const string &file, const string &password) noexcept : spdlog::sinks::base_sink<Mutex>(),
-                                                                       db(file, password, "create table if not exists log ("
-                                                                                          " id integer primary key autoincrement not null, "
-                                                                                          " ts timestamp default (strftime('%s', 'now')), "
-                                                                                          " level int, "
-                                                                                          " section text, "
-                                                                                          " message text "
-                                                                                          ");"),
-                                                                       pinsert(db, "insert into log (level, section, message) values (?, ?, ?);"),
-                                                                       pselect(db, "select id, ts, level, section, message from log where id > ? order by id desc limit 1000;")
+    sqlite_sink() noexcept : spdlog::sinks::base_sink<Mutex>(), tmp(DB::o() << "create table if not exists log ("
+                                                                                   " id integer primary key autoincrement not null, "
+                                                                                   " ts timestamp default (strftime('%s', 'now')), "
+                                                                                   " level int, "
+                                                                                   " section text, "
+                                                                                   " message text "
+                                                                                   ");"),
+                             pinsert(DB::o() << "insert into log (level, section, message) values (?, ?, ?);"),
+                             pselect(DB::o() << "select id, ts, level, section, message from log where id > ? order by id desc limit 1000;")
     {
     }
+
+    void rekey(const string new_key)
+    {
+        flush_();
+        sqlite::database_binder st = DB::o() << "update log set message = ? where id = ?";
+        DB::o() << "begin transaction;";
+        DB::o() << "select id, message from log order by id; " >>
+            [&](unsigned long id, string message) {
+                st << Crypt::crypt->encrypt(Crypt::crypt->decrypt(message), new_key) << id;
+                st++;
+            };
+        Crypt::crypt->setPassword(new_key);
+        DB::o() << "commit;";
+    }
+
     nlohmann::json last(const unsigned long last_id)
     {
         json lines = json::array();
@@ -99,7 +112,7 @@ public:
                     {"ts", ts},
                     {"level", level},
                     {"section", section},
-                    {"message", db.decrypt(message)},
+                    {"message", message},
                 });
             };
         return lines;
@@ -108,32 +121,21 @@ public:
 
 using sqlite_sink_mt = sqlite_sink<std::mutex>;
 
-Logger::Logger()
+void Logger::init(unsigned int _keep_hours)
 {
-}
-
-void Logger::add_sinks()
-{
+    keep_hours = _keep_hours;
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     console_sink->set_pattern("%T %L%^%n → %v%$");
     console_sink->set_level(spdlog::level::debug);
     sinks.push_back(console_sink);
 
-    /*   
-    auto file_sink = std::make_shared<spdlog::sinks::daily_file_sink_mt>(fmt::format("{}/actions.log", Logger::dir), 23, 59);
-    file_sink->set_pattern("%T\t%n\t%L\t%v");
-    file_sink->set_level(spdlog::level::debug);
-    sinks.push_back(file_sink);
-*/
-
-    auto sqlite_sink = std::make_shared<sqlite_sink_mt>(fmt::format("{}/log.db", dir), password);
+    auto sqlite_sink = std::make_shared<sqlite_sink_mt>();
     sqlite_sink->set_pattern("%v");
     sqlite_sink->set_level(spdlog::level::debug);
     auto formatter = std::make_unique<spdlog::pattern_formatter>("%v", spdlog::pattern_time_type::local, "");
     sqlite_sink->set_formatter(std::move(formatter));
 
     sinks.push_back(sqlite_sink);
-    db_sink = sqlite_sink;
 
     if (!telegramChat.empty())
     {
@@ -144,29 +146,15 @@ void Logger::add_sinks()
     }
 }
 
-Logger::~Logger()
-{
-}
-
-logger_p Logger::get(const char *name)
-{
-    std::shared_ptr<spdlog::logger> l = std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
-    l->flush_on(spdlog::level::warn);
-    return l;
-}
 
 nlohmann::json Logger::last(const unsigned long last_id)
 {
-    return db_sink->last(last_id);
+//    return db_sink->last(last_id);
 }
 
 logger_p Logger::logger(const char *name)
 {
-    if (!created)
-    {
-        created = true;
-        l = new Logger();
-        l->add_sinks();
-    }
-    return l->get(name);
+    std::shared_ptr<spdlog::logger> ret = std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
+    ret->flush_on(spdlog::level::warn);
+    return ret;
 }

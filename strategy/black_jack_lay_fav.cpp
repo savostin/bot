@@ -8,7 +8,7 @@ StBlackJackLayFav::StBlackJackLayFav(bool turbo) : BlackJack(turbo), placedGameI
 {
     logger = Logger::logger(string(_.LoggerBfBj).data());
     logger->set_level(spdlog::level::debug);
-    logger->debug(_.StrategyStarting, runningStrategy(), V_MAJOR, V_MINOR);
+    logger->warn(_.StrategyStarting, runningStrategy(), V_MAJOR, V_MINOR);
 }
 
 StBlackJackLayFav::~StBlackJackLayFav()
@@ -75,7 +75,7 @@ void StBlackJackLayFav::run(struct Data data)
                                     bet.price = selection.layPrice.price;
                                     bet.amount = 4 / (bet.price - 1);
                                     logger->info(_.StrategyBet, data.id, selection.name, bet.amount, BetFair::account()->currency, selection.layPrice.price);
-                                    //BetFair::account()->placeBet(bet);
+                                    BetFair::account()->placeBet(bet);
                                     return;
                                 }
                             }

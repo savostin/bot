@@ -4,6 +4,8 @@
 #include <csignal>
 #include "argagg.hpp"
 #include "events.h"
+#include "db.h"
+#include "crypt.h"
 
 logger_p logger;
 
@@ -55,6 +57,7 @@ int main(int argc, char **argv)
 	{
 		argparser = {{
 			{"lang", {"--lang"}, _.UsageLanguage, 1},
+			{"crypt", {"--crypt"}, _.UsageEncrypt, 1},
 			{"logs", {"-l", "--logs"}, _.UsageLogs, 1},
 			{"keep", {"--keep"}, _.UsageKeep, 1},
 			{"username", {"-u", "--user"}, _.UsageBetFairUsername, 1},
@@ -109,11 +112,19 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
+	string pass = args["crypt"].as<string>("");
+	while (pass.empty())
+	{
+		cout << (string)_.UsageEnterCrypt;
+		setStdinEcho(false);
+		cin >> pass;
+		setStdinEcho(true);
+		cout << endl;
+	}
+
 	string logs = args["logs"].as<string>("./logs/");
-	Logger::dir = logs;
 
 	unsigned int keep_hours = args["keep"].as<unsigned int>(24);
-	Logger::keep_hours = keep_hours;
 
 	if (args["proxy_port"] && args["proxy_server"])
 	{
@@ -126,7 +137,14 @@ int main(int argc, char **argv)
 		cout << (string)_.UsageEnterBetFairUsernane;
 		cin >> username;
 	}
-	Logger::password = username;
+
+	Crypt::init(username, pass);
+
+	if (!DB::init(logs))
+	{
+		cerr << "Database error" << endl;
+		return EXIT_FAILURE;
+	}
 
 	string password = args["password"].as<string>("");
 	while (password.empty())
@@ -145,9 +163,19 @@ int main(int argc, char **argv)
 		Logger::telegramChat = t_chat;
 		Logger::telegramKey = t_key;
 	}
-	else if (args["telegram_key"])
+	Logger::init(keep_hours);
+	signal(SIGINT, signal_handler);
+	logger = Logger::logger(string(_.LoggerApp).data());
+	logger->set_level(spdlog::level::info);
+	logger->info(_.Welcome, VERSION_NAME, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+	logger->info("{}", OPENSSL_VERSION_TEXT);
+	if (t_chat.empty() && args["telegram_key"])
 	{
 		logger->warn(_.UsageTelegramNoChat);
+	}
+	if (!t_chat.empty() && !args["telegram_key"])
+	{
+		logger->warn(_.TelegramWarning);
 	}
 
 	Server server;
@@ -157,22 +185,12 @@ int main(int argc, char **argv)
 		server.start(port);
 	}
 
-	signal(SIGINT, signal_handler);
-	logger = Logger::logger(string(_.LoggerApp).data());
-	logger->set_level(spdlog::level::info);
-	logger->info(_.Welcome, VERSION_NAME, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-	logger->info("{}", OPENSSL_VERSION_TEXT);
-	if (!t_chat.empty() && !args["telegram_key"])
-	{
-		logger->warn(_.TelegramWarning);
-	}
-
 	try
 	{
 		if (BetFair::account()->login(username, password))
 		{
 			Channel *s = Channel::create(ST_BJT_LF);
-			s->status(RUNNING);
+			//s->status(RUNNING);
 			Event e;
 			bool is_running = true;
 			while (is_running)

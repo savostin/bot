@@ -116,6 +116,7 @@ bool BlackJack::parse(xml_document &doc)
     return false;
 }
 
+
 unsigned int BlackJack::points(vector<int> &cards)
 {
     unsigned int pts = 0;

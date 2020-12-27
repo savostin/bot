@@ -116,7 +116,7 @@ bool BetFairAccount::placeBet(struct Bet &bet)
                                  bet.round,
                                  currency,
                                  sideName,
-                                 /*(bet.side == BACK ? 100 : 1.02),*/ bet.price,
+                                 bet.price,
                                  minBet(bet.amount),
                                  bet.selection.id)
                          .c_str());
@@ -262,13 +262,12 @@ vector<Bet> BetFairAccount::getBets(const unsigned long channel, const string &s
     return bets;
 }
 
-vector<Statement> BetFairAccount::getStatement(const ChannelType channel, const int count, const int from)
+vector<Statement> BetFairAccount::getStatement(const int count, const int from)
 {
     vector<Statement> statement;
-    string channelName = Channel::getNameSimple(channel);
     string typeName = "";
-    logger->debug("Getting account statement for channel {} {} / {}", channelName, count, from);
-    xml_document doc = Request(fmt::format("/rest/v1/account/statement?username={}&recordCount={:d}&startRecord={:d}{}", username, count, from, (channel == UNKNOWN ? "" : fmt::format("&account={}", channelName))), HTTP::no_xml);
+    logger->debug("Getting account statement {} / {}", count, from);
+    xml_document doc = Request(fmt::format("/rest/v1/account/statement?username={}&recordCount={:d}&startRecord={:d}", username, count, from), HTTP::no_xml);
     if (doc)
     {
         xml_node root = doc.child("accountStatement");

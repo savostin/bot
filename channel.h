@@ -25,11 +25,10 @@ public:
     virtual bool parse(xml_document &str) = 0;
     virtual void run(struct Data data) = 0;
     virtual const string runningStrategy() const = 0;
+    string name();
 
     static Channel *create(const StrategyType type);
     static int favIndex(vector<Selection> &selections, const int max = 100);
-    static string getName(ChannelType type, bool u = false);
-    static string getNameSimple(ChannelType type);
 
     static map<const ChannelType, Channel *> channels;
     static void status(const ChannelType t, ChannelStatus s);

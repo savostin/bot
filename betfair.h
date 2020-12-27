@@ -48,7 +48,7 @@ public:
     vector<Bet> getBets(const unsigned long channel, const string &status = "ACTIVE");
     vector<Bet> getBetsHistory(const string &status = "SETTLED");
     float getMarketPL(const int marketId);
-    vector<Statement> getStatement(const ChannelType channel = UNKNOWN, const int count = 100, const int from = 0);
+    vector<Statement> getStatement(const int count = 100, const int from = 0);
 
     float minBet(float amount);
 };

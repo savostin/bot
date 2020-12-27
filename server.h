@@ -16,6 +16,7 @@ private:
     unsigned int port;
     static void doit(Server *s);
     json jinit();
+    bool checkKey(const string & key);
 
 public:
     Server();

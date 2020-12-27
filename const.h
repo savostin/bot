@@ -67,7 +67,6 @@ enum ChannelType
     UNKNOWN = 0,
     BLACK_JACK = 1444077,
     BLACK_JACK_TURBO = 1444082,
-
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ChannelType,
@@ -164,10 +163,13 @@ struct Statement
         json j = {
             {"id", id},
             {"timestamp", fmt::format("{:%FT%T%z}", fmt::localtime(chrono::system_clock::to_time_t(timestamp)))},
-            {"type", type},
-            {"description", description},
-            {"amount", amount},
-            {"balance", balance}};
+            {"secret", {
+                           {"type", type},
+                           {"description", description},
+                           {"amount", amount},
+                           {"balance", balance},
+                       }},
+        };
         return j;
     }
 };

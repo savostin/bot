@@ -263,6 +263,7 @@ string Cipher::encode_base64(uchar* ciphertext,
 {
   DBG_FCT("encode_base64");
   BIO* b64 = BIO_new(BIO_f_base64());
+  BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL); 
   BIO* bm  = BIO_new(BIO_s_mem());
   b64 = BIO_push(b64, bm);
   if (BIO_write(b64, ciphertext, ciphertext_len)<2) {

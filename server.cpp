@@ -1,90 +1,122 @@
 #include "server.h"
 #include "channel.h"
-#include "sqlite.h"
+#include "crypt.h"
+
+#define XKEY "X-Key"
 
 Server::Server() : th()
 {
-    server.set_mount_point("/", "./www");
+    logger = Logger::logger(string(_.LoggerServer).data());
+    logger->set_level(spdlog::level::info);
 
-    server.Get("/statement.json", [&](const httplib::Request & /*req*/, httplib::Response &res) {
-        json items = json::array();
-        vector<Statement> st = BetFair::account()->getStatement();
-        logger->debug("Statement: {:d}", st.size());
-        for (vector<Statement>::iterator i = st.begin(); i != st.end(); i++)
-        {
-            items.push_back((*i).toJson());
-        }
+    server.set_mount_point("/", "./www");
+    server.Get("/statement.json", [&](const httplib::Request &req, httplib::Response &res) {
         json j = jinit();
-        j["items"] = items;
+        if (req.has_header(XKEY) && checkKey(req.get_header_value(XKEY)))
+        {
+            json items = json::array();
+            vector<Statement> st = BetFair::account()->getStatement();
+            logger->debug("Statement: {:d}", st.size());
+            json jj;
+            for (vector<Statement>::iterator i = st.begin(); i != st.end(); i++)
+            {
+                jj = (*i).toJson();
+                jj["secret"] = Crypt::crypt->encrypt((string)jj["secret"]);
+                items.push_back(jj);
+            }
+            j["items"] = items;
+        }
+        else
+        {
+            j["error"] = "AUTH";
+        }
         res.set_content(j.dump(), "application/json");
     });
 
-    server.Get("/channels.json", [&](const httplib::Request & /*req*/, httplib::Response &res) {
-        json channels = json::array();
-        for (map<const ChannelType, Channel *>::iterator i = Channel::channels.begin(); i != Channel::channels.end(); i++)
-        {
-            Channel *c = i->second;
-            channels.push_back({
-                {"id", (int)i->first},
-                {"name", Channel::getName(i->first)},
-                {"description", Channel::getName(i->first, false)},
-                {"strategy", i->second->runningStrategy()},
-                {"status", c->status()},
-            });
-        }
+    server.Get("/channels.json", [&](const httplib::Request &req, httplib::Response &res) {
         json j = jinit();
-        j["channels"] = channels;
+        if (req.has_header(XKEY) && checkKey(req.get_header_value(XKEY)))
+        {
+            json channels = json::array();
+            for (map<const ChannelType, Channel *>::iterator i = Channel::channels.begin(); i != Channel::channels.end(); i++)
+            {
+                Channel *c = i->second;
+                channels.push_back({
+                    {"id", (int)i->first},
+                    {"name", i->second->name()},
+                    {"strategy", i->second->runningStrategy()},
+                    {"status", c->status()},
+                });
+            }
+            j["channels"] = channels;
+        }
+        else
+        {
+            j["error"] = "AUTH";
+        }
         res.set_content(j.dump(), "application/json");
     });
 
     server.Get("/log.json", [&](const httplib::Request &req, httplib::Response &res) {
-        unsigned long last_id = req.has_param("from") ? stol(req.get_param_value("from")) : 0;
-        logger->debug("Get logs from {:d}", last_id);
         json j = jinit();
-        j["lines"] = Logger::last(last_id);
+        if (req.has_header(XKEY) && checkKey(req.get_header_value(XKEY)))
+        {
+            unsigned long last_id = req.has_param("from") ? stol(req.get_param_value("from")) : 0;
+            logger->debug("Get logs from {:d}", last_id);
+            j["lines"] = Logger::last(last_id);
+            Funds funds = BetFair::account()->funds();
+            j["funds"] = Crypt::crypt->encrypt(to_string(funds.available));
+            j["currency"] = funds.currency;
+        }
+        else
+        {
+            j["error"] = "AUTH";
+        }
         res.set_content(j.dump(), "application/json");
     });
+
     server.Get("/control/(pause|resume)_([A-Z_]+).json", [&](const httplib::Request &req, httplib::Response &res) {
-        string m = req.matches[1].str();
-        string channel = req.matches[2].str();
-        json tmp = channel;
-        ChannelType cht = tmp.get<ChannelType>();
-        logger->debug("Control: {} {} ({:d})", m, channel, cht);
-        EventType tp = E_NONE;
-        if (m == "pause")
+        json j = jinit();
+        if (req.has_header(XKEY) && checkKey(req.get_header_value(XKEY)))
         {
-            tp = E_PAUSE;
+            string m = req.matches[1].str();
+            string channel = req.matches[2].str();
+            json tmp = channel;
+            ChannelType cht = tmp.get<ChannelType>();
+            logger->debug("Control: {} {} ({:d})", m, channel, cht);
+            EventType tp = E_NONE;
+            if (m == "pause")
+            {
+                tp = E_PAUSE;
+            }
+            else if (m == "resume")
+            {
+                tp = E_RESUME;
+            }
+            Events::loop()->notify(tp, cht);
+            j["result"] = "OK";
         }
-        else if (m == "resume")
+        else
         {
-            tp = E_RESUME;
+            j["error"] = "AUTH";
         }
-        Events::loop()->notify(tp, cht);
-        json j = jinit();
-        j["result"] = "OK";
         res.set_content(j.dump(), "application/json");
     });
 
-    server.Get("/control/exit.json", [&](const httplib::Request & /*req*/, httplib::Response &res) {
-        logger->debug("Control: exit");
-        Events::loop()->notify(E_EXIT);
+    server.Get("/control/exit.json", [&](const httplib::Request &req, httplib::Response &res) {
         json j = jinit();
-        j["result"] = "OK";
+        if (req.has_header(XKEY) && checkKey(req.get_header_value(XKEY)))
+        {
+            logger->debug("Control: exit");
+            Events::loop()->notify(E_EXIT);
+            j["result"] = "OK";
+        }
+        else
+        {
+            j["error"] = "AUTH";
+        }
         res.set_content(j.dump(), "application/json");
     });
-
-    server.Get("/funds.json", [&](const httplib::Request & /*req*/, httplib::Response &res) {
-        json items = json::array();
-        Funds funds = BetFair::account()->funds();
-        logger->debug("Funds: {:.2f} {}", funds.available, funds.currency);
-        json j = jinit();
-        j["funds"] = funds.available;
-        j["currency"] = funds.currency;
-        res.set_content(j.dump(), "application/json");
-    });
-
-    logger = Logger::logger(string(_.LoggerServer).data());
-    logger->set_level(spdlog::level::debug);
 }
 
 void Server::start(const unsigned int _port)
@@ -129,4 +161,21 @@ json Server::jinit()
             },
         }};
     return j;
+}
+
+bool Server::checkKey(const string &key)
+{
+    string ds = Crypt::crypt->decrypt(key);
+    if (ds.empty())
+    {
+        return false;
+    }
+    tm timeinfo;
+    if (fmt::detail::strftime((char *)ds.c_str(), ds.length(), "%Y-%m-%dT%H:%M:%S", &timeinfo) > 0)
+    {
+        std::time_t tt = std::mktime(&timeinfo);
+        chrono::system_clock::time_point tp = chrono::system_clock::from_time_t(tt);
+        return chrono::system_clock::now() - tp > chrono::minutes(5);
+    }
+    return false;
 }
