@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../errors.h"
-#include <sqlite3.h>
+#include "../sqlite3.h"
 #include <optional>
 #include <variant>
 

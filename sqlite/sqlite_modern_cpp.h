@@ -44,7 +44,7 @@
 #endif
 #endif
 
-#include <sqlite3.h>
+#include "./sqlite3.h"
 
 #include "sqlite_modern_cpp/errors.h"
 #include "sqlite_modern_cpp/utility/function_traits.h"

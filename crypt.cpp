@@ -2,19 +2,22 @@
 
 shared_ptr<Crypt> Crypt::crypt = nullptr;
 
-Crypt::Crypt(const std::string &_salt) : Cipher("aes-256-cbc", "sha256", 100, false), salt(_salt), password("")
+Crypt::Crypt(const std::string &_password, const std::string &_salt) : Cipher("aes-256-cbc", "sha256", 100, false), salt(_salt), password(_password)
 {
+    if (salt.empty())
+    {
+    }
 }
 
 Crypt::~Crypt()
 {
 }
 
-string Crypt::encrypt(const string &str, string p)
+string Crypt::encrypt(const string &str)
 {
     try
     {
-        return Cipher::encrypt(str, p.empty() ? password : p, salt);
+        return Cipher::encrypt(str, password, salt);
     }
     catch (...)
     {
@@ -22,11 +25,11 @@ string Crypt::encrypt(const string &str, string p)
     }
 }
 
-string Crypt::decrypt(const string &str, string p)
+string Crypt::decrypt(const string &str)
 {
     try
     {
-        return Cipher::decrypt(str, p.empty() ? password : p, salt);
+        return Cipher::decrypt(str, password, salt);
     }
     catch (...)
     {
@@ -34,17 +37,13 @@ string Crypt::decrypt(const string &str, string p)
     }
 }
 
-void Crypt::setPassword(const std::string &_password)
-{
-    password = _password;
-}
-
-void Crypt::init(const std::string &salt, const std::string &password)
+bool Crypt::init(const std::string &password)
 {
     if (crypt == nullptr)
     {
-        Crypt c(salt);
-        crypt = make_shared<Crypt>(c);
-        crypt->setPassword(password);
+        Crypt c(password);
+        Crypt::crypt = make_shared<Crypt>(c);
+        return true;
     }
+    return false;
 }

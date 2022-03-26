@@ -55,9 +55,21 @@ struct Language
     L UsageHelp = {
         "Shows this help message",
         "Показать эту помощь"};
-    L UsageLogs = {
-        "Location of logs dir [./logs/]",
-        "Расположение директории для логов [./logs/]"};
+    L UsageFile = {
+        "Filename to keep the data",
+        "Имя зашифрованного файла с данными"};
+    L UsageEnterFile = {
+        "Please enter encrypted data filename: ",
+        "Введите имя зашифрованного файла с данными: "};
+    L UsageFileError = {
+        "Unable to open the file for writing or reading. Please make sure you have access rights or check the filename",
+        "Невозможно открыть указанный файл на запись или чтение. Проверьте права пользователя или имя файла"};
+    L UsageOptionsLoadError = {
+        "Unable to load options. Probably database is damaged or password incorrect.",
+        "Невозможно прочитать опции. Возможно файл поврежден или неверный пароль."};
+    L UsageWizard = {
+        "Start options wizard",
+        "Запустить мастер настроек"};
     L UsageKeep = {
         "Keep logs for X hours [24]",
         "Хранить логи X часов [24]"};
@@ -67,6 +79,12 @@ struct Language
     L UsageBetFairPassword = {
         "BetFair password",
         "Пароль аккаунта BetFair"};
+    L UsageSaveBetFairPassword = {
+        "Save BetFair password enrypted? [Y̳/N]",
+        "Сохранить пароль аккаунта BetFair зашифрованным? [Д̳/Н]"};
+    L UsageWrongPassword = {
+        "Wrong encryption password",
+        "Пароль шифрования неверный"};
     L UsageEncrypt = {
         "Encryption password",
         "Пароль шифрования"};

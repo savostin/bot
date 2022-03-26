@@ -5,7 +5,7 @@ PACKAGE		= bfbj
 BUILD_DIR	= ./build
 LOCALE_DIR	= ./locale
 OPENSSL_DIR		= ./openssl
-LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -L./fmt/ -lssl -lz -lcrypto -lfmt -lspdlog -lpthread -ldl -lsqlite3
+LIBRARY_DIRS	= -L$(OPENSSL_DIR)/lib -L./spdlog/ -L. -L./fmt/ -lssl -lz -lcrypto -lfmt -lspdlog -lpthread -ldl ./sqlite/sqlite3.o
 HEADERS			= -I$(OPENSSL_DIR)/include
 
 CPP_COMMON	= -Wall -c -I. -std=c++14 -fpic
@@ -18,12 +18,11 @@ LD              = g++
 debug: LD_FLAGS        = -Wall -Wextra -O0
 release: LD_FLAGS        = -Wall -O2
 EXE				= bot
-say				= say "Done"
 
 SOURCES		= $(wildcard sqlite/*.cpp) $(wildcard pugixml/*.cpp) $(wildcard channel/*.cpp) $(wildcard strategy/*.cpp) $(wildcard *.cpp)
 OBJECTS		= $(SOURCES:%=$(BUILD_DIR)/%.o)
 
-debug:		clear clean_exe ${OBJECTS} ${EXE} say
+debug:		clear clean_exe ${OBJECTS} ${EXE}
 release:	clear clean_exe ${OBJECTS} ${EXE}
 
 all:	${OBJECTS} ${EXE}
@@ -51,5 +50,3 @@ clear:
 run:
 	./${EXE}
 
-say:
-	${SAY}

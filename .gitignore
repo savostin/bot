@@ -10,3 +10,5 @@
 *.so
 *.log
 *.db
+sqlcipher
+*.vmp

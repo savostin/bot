@@ -11,13 +11,12 @@ private:
     std::string password;
 
 public:
-    Crypt(const std::string &salt);
+    Crypt(const std::string &password, const std::string &salt = "");
     ~Crypt();
-    std::string encrypt(const std::string &str, std::string pass = "");
-    std::string decrypt(const std::string &str, std::string pass = "");
-    void setPassword(const std::string &password);
+    std::string encrypt(const std::string &str);
+    std::string decrypt(const std::string &str);
 
     static shared_ptr<Crypt> crypt;
-    static void init(const std::string &salt, const std::string &password);
+    static bool init(const std::string &password);
 };
 #endif // __CRYPT_H__

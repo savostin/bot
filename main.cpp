@@ -6,41 +6,7 @@
 #include "events.h"
 #include "db.h"
 #include "crypt.h"
-
-logger_p logger;
-
-#ifdef WIN32
-#include <windows.h>
-#else
-#include <termios.h>
-#include <unistd.h>
-#endif
-
-void setStdinEcho(bool enable = true)
-{
-#ifdef WIN32
-	HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
-	DWORD mode;
-	GetConsoleMode(hStdin, &mode);
-
-	if (!enable)
-		mode &= ~ENABLE_ECHO_INPUT;
-	else
-		mode |= ENABLE_ECHO_INPUT;
-
-	SetConsoleMode(hStdin, mode);
-
-#else
-	struct termios tty;
-	tcgetattr(STDIN_FILENO, &tty);
-	if (!enable)
-		tty.c_lflag &= ~ECHO;
-	else
-		tty.c_lflag |= ECHO;
-
-	(void)tcsetattr(STDIN_FILENO, TCSANOW, &tty);
-#endif
-}
+#include "options.h"
 
 void signal_handler(int)
 {
@@ -57,18 +23,9 @@ int main(int argc, char **argv)
 	{
 		argparser = {{
 			{"lang", {"--lang"}, _.UsageLanguage, 1},
-			{"crypt", {"--crypt"}, _.UsageEncrypt, 1},
-			{"logs", {"-l", "--logs"}, _.UsageLogs, 1},
-			{"keep", {"--keep"}, _.UsageKeep, 1},
-			{"username", {"-u", "--user"}, _.UsageBetFairUsername, 1},
-			{"password", {"-p", "--password"}, _.UsageBetFairPassword, 1},
-			{"port", {"--port"}, _.UsagePort, 1},
-			{"proxy_server", {"--proxy-server"}, _.UsageProxyServer, 1},
-			{"proxy_port", {"--proxy-port"}, _.UsageProxyPort, 1},
-			{"proxy_username", {"--proxy-username"}, _.UsageProxyUsername, 1},
-			{"proxy_password", {"--proxy-password"}, _.UsageProxyPassword, 1},
-			{"telegram_chat", {"-c", "--chat"}, _.UsageTelegramChat, 1},
-			{"telegram_key", {"-k", "--key"}, _.UsageTelegramKey, 1},
+			{"password", {"-p", "--password"}, _.UsageEncrypt, 1},
+			{"file", {"-f", "--file"}, _.UsageFile, 1},
+			{"wizard", {"-w", "--wizard"}, _.UsageWizard, 0},
 			{"version", {"-V", "--version"}, _.UsageVersion, 0},
 			{"help", {"-h", "--help"}, _.UsageHelp, 0},
 		}};
@@ -98,7 +55,7 @@ int main(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 	}
-
+	bool wizard = args["wizard"] ? true : false;
 	if (args["help"])
 	{
 		cerr << fmt::format((string)_.Usage, argv[0]) << endl
@@ -112,60 +69,81 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
-	string pass = args["crypt"].as<string>("");
-	while (pass.empty())
+	string file = args["file"].as<string>("");
+	do
 	{
-		cout << (string)_.UsageEnterCrypt;
-		setStdinEcho(false);
-		cin >> pass;
-		setStdinEcho(true);
-		cout << endl;
-	}
+		if ((file.empty()))
+		{
+			file = Options::ask(_.UsageEnterFile);
+		}
+		if (!DB::init(file))
+		{
+			cerr << (string)_.UsageFileError << endl;
+			file = "";
+		}
+	} while (file.empty());
 
-	string logs = args["logs"].as<string>("./logs/");
-
-	unsigned int keep_hours = args["keep"].as<unsigned int>(24);
-
-	if (args["proxy_port"] && args["proxy_server"])
+	string password = args["password"].as<string>("");
+	int tried = 0;
+	do
 	{
-		HTTP::setProxy(args["proxy_server"].as<string>(""), args["proxy_port"].as<int>(0), args["proxy_username"].as<string>(""), args["proxy_password"].as<string>(""));
-	}
+		if (password.empty())
+		{
+			password = Options::ask(_.UsageEnterCrypt, true);
+		}
+		if (!DB::o().set_key(password))
+		{
+			cerr << (string)_.UsageWrongPassword << endl;
+			password = "";
+			tried++;
+			this_thread::sleep_for(chrono::seconds(5 ^ tried));
+		}
+	} while (password.empty() && tried < 3);
 
-	string username = args["username"].as<string>("");
-	while (username.empty())
+	if (password.empty())
 	{
-		cout << (string)_.UsageEnterBetFairUsernane;
-		cin >> username;
-	}
-
-	Crypt::init(username, pass);
-
-	if (!DB::init(logs))
-	{
-		cerr << "Database error" << endl;
 		return EXIT_FAILURE;
 	}
 
-	string password = args["password"].as<string>("");
-	while (password.empty())
+	Crypt::init(password);
+
+	Options o;
+	if (o.get("proxy_port", 0) > 0 && !o.get("proxy_server", "").empty())
 	{
-		cout << (string)_.UsageEnterBetFairPassword;
-		setStdinEcho(false);
-		cin >> password;
-		setStdinEcho(true);
-		cout << endl;
+		HTTP::setProxy(o.get("proxy_server", ""), o.get("proxy_port", 0), o.get("proxy_username", ""), o.get("proxy_password", ""));
 	}
 
-	string t_chat = args["telegram_chat"].as<string>("");
+	string t_chat = o.get("telegram_chat", "");
 	if (!t_chat.empty())
 	{
-		string t_key = args["telegram_key"].as<string>("");
+		string t_key = o.get("telegram_key", "");
 		Logger::telegramChat = t_chat;
 		Logger::telegramKey = t_key;
 	}
-	Logger::init(keep_hours);
-	signal(SIGINT, signal_handler);
-	logger = Logger::logger(string(_.LoggerApp).data());
+
+	while (o.get("username", "").empty())
+	{
+		o.set("username", Options::ask(_.UsageEnterBetFairUsernane));
+	}
+
+	string pass = o.get("password", "");
+	if (pass.empty())
+	{
+		while (pass.empty())
+		{
+			pass = Options::ask(_.UsageEnterBetFairPassword, true);
+		}
+
+		string s = Options::ask(_.UsageSaveBetFairPassword);
+		if (s == "Y" || s == "y" || s == "Д" || s == "д" || s == "")
+		{
+			o.set("password", pass);
+		}
+	}
+
+	o.save();
+	Logger::init(o.get("keep", 24));
+	logger_p logger = Logger::logger(string(_.LoggerApp).data());
 	logger->set_level(spdlog::level::info);
 	logger->info(_.Welcome, VERSION_NAME, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 	logger->info("{}", OPENSSL_VERSION_TEXT);
@@ -179,16 +157,17 @@ int main(int argc, char **argv)
 	}
 
 	Server server;
-	unsigned int port = args["port"].as<unsigned int>(0);
-	if (port > 0)
-	{
-		server.start(port);
-	}
 
 	try
 	{
-		if (BetFair::account()->login(username, password))
+		if (BetFair::account()->login(o.get("username", ""), pass))
 		{
+			signal(SIGINT, signal_handler);
+			unsigned int port = o.get("port", 0);
+			if (port > 0)
+			{
+				server.start(port);
+			}
 			Channel *s = Channel::create(ST_BJT_LF);
 			//s->status(RUNNING);
 			Event e;

@@ -8,11 +8,11 @@ class Logger
 {
 private:
     static std::vector<spdlog::sink_ptr> sinks;
-    static unsigned int keep_hours;
 
 public:
     static std::string telegramKey;
     static std::string telegramChat;
+    static unsigned int keep_hours;
 
 public:
     static void init(unsigned int keep_hours);
