@@ -20,8 +20,8 @@ void StBlackJackLayFav::run(struct Data data)
     if (checkedGameId != data.id)
     {
         const int mi = BlackJack::MarketIndex::Main;
-        //logger->debug("----------------------");
-        //logger->debug("Status: {}", data.markets[mi].status);
+        logger->debug("----------------------");
+        logger->debug("Status: {}", data.markets[mi].status);
         if (data.markets[mi].status == "ACTIVE")
         {
             //logger->debug("Round: {:d}", data.round);

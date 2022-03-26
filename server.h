@@ -5,24 +5,22 @@
 #include "logger.h"
 #include <thread>
 
-
-class Server
-{
+class Server {
 private:
-    httplib::Server server;
-    void getLog(const httplib::Request& req, httplib::Response& res);
-    logger_p logger;
-    thread th;
-    unsigned int port;
-    static void doit(Server *s);
-    json jinit();
-    bool checkKey(const string & key);
+  httplib::Server server;
+  void getLog(const httplib::Request &req, httplib::Response &res);
+  logger_p logger;
+  thread th;
+  unsigned int port;
+  static void doit(Server *s);
+  json jinit();
+  bool checkKey(const string &key);
 
 public:
-    Server();
-    void start(const unsigned int port);
-    void stop();
-    ~Server();
+  Server();
+  void start(const unsigned int port);
+  void stop();
+  ~Server();
 };
 
 #endif // __SERVER_H__

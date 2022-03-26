@@ -4,15 +4,14 @@
 #include "const.h"
 #include "http.h"
 
-class Telegram : public HTTP
-{
+class Telegram : public HTTP {
 private:
-    const string token;
+  const string token;
 
 public:
-    Telegram(const string _token);
-    ~Telegram();
-    bool send(const string &chat, const string &message);
+  Telegram(const string _token);
+  ~Telegram();
+  bool send(const string &chat, const string &message);
 };
 
 #endif // __TELEGRAM_H__

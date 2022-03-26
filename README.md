@@ -1,1 +1,2 @@
-# bot
+# BlackJack BetFair Exchange Games Bot
+

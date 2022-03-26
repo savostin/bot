@@ -3,21 +3,20 @@
 
 #include "const.h"
 
-class Options
-{
+class Options {
 private:
-    json data;
+  json data;
 
 public:
-    Options();
-    ~Options();
-    bool load();
-    void save();
-    int get(std::string name, int def);
-    std::string get(std::string name, std::string def);
-    void set(std::string name, int val);
-    void set(std::string name, std::string val);
-    static std::string ask(const std::string &q, bool hide = false);
+  Options();
+  ~Options();
+  bool load();
+  void save();
+  int get(std::string name, int def);
+  std::string get(std::string name, std::string def);
+  void set(std::string name, int val);
+  void set(std::string name, std::string val);
+  static std::string ask(const std::string &q, bool hide = false);
 };
 
 #endif // __OPTIONS_H__

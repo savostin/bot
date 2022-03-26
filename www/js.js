@@ -50,7 +50,7 @@ function Site(salt, password) {
 
 
 Zepto(function($) {
-    window.site = new Site("savostin", "password");
+    window.site = new Site("login", "password");
     $.getJSON("/channels.json", (data) => {
         if (data.software) {
             document.title = data.software.name + ' v.' + data.software.version;
