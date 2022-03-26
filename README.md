@@ -11,6 +11,8 @@ Features:
 * English, Russian languages supported.
 * Telegram notifications
 
+![GitHub top language](https://img.shields.io/github/languages/top/savostin/bot)
+
 Limitations:
 * Currently only BlackJack channel is supported.
 * Only one strategy has been inplemented.
