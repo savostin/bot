@@ -22,4 +22,5 @@ Currently working on:
 * Improving translation routine (move to .po?)
 * Add profiles / user support
 * Setup wizard
+* Docker
 * Source code docs :(
